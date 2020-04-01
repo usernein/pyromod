@@ -1,0 +1,5 @@
+build/
+dist/
+pyromod.egg-info
+test.py
+__pycache__/
