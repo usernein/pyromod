@@ -4,7 +4,8 @@ A monkeypatcher add-on for Pyrogram
 ## Introduction
 pyromod is a compilation of utils i developed for extend my personal use of Pyrogram. Then i started to use it and more bots and now i published it to make it easier to be installed in new projects.
 It works *together* with pyrogram, this is *not* a fork nor modded version. It does monkey patching to add features to Pyrogram classes.
-Note: it uses pyrogram asyncio.
+
+IMPORTANT: you should have installed asyncio pyrogram.
 
 ## Usage
 Import `pyromod` at least one time in your script, so you'll be able to use modified pyrogram in all files of the same proccess. Example:

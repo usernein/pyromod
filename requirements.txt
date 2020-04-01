@@ -1,1 +1,1 @@
-pyrogram @ https://api.github.com/repos/pyrogram/pyrogram/tarball/asyncio-dev
+
