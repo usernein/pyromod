@@ -1,3 +1,4 @@
+import re 
 import setuptools
 
 with open("README.md", "r") as fp:
@@ -6,11 +7,13 @@ with open("README.md", "r") as fp:
 with open('requirements.txt') as fp:
     requirements = [line.strip() for line in fp]
 
-print(requirements)
+with open('pyromod/__init__.py') as fp:
+    version = re.search('__version__ = "(.+?)"', fp.read())[1]
+
 
 setuptools.setup(
     name="pyromod",
-    version="0.0.2",
+    version=version,
     author="Cezar H.",
     license="LGPLv3+",
     description="A monkeypatcher add-on for Pyrogram",
