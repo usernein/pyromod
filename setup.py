@@ -6,12 +6,14 @@ with open("README.md", "r") as fp:
 with open('requirements.txt') as fp:
     requirements = [line.strip() for line in fp]
 
+print(requirements)
+
 setuptools.setup(
     name="pyromod",
-    version="0.0.1",
+    version="0.0.2",
     author="Cezar H.",
     license="LGPLv3+",
-    description="A monkeypatched add-on for Pyrogram",
+    description="A monkeypatcher add-on for Pyrogram",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/usernein/pyromod",
