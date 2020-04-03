@@ -32,14 +32,16 @@ class Filters:
     
     @patchable
     @create
+    @staticmethod
     def dice(ctx, message):
         return hasattr(message, 'dice') and message.dice
     
     @patchable
     @create
+    @staticmethod
     def callback_regex(pattern, flags: int = 0):
         def callback_regex_filter(ctx, query):
             if query.data:
                 query.matches = [*ctx.pattern.finditer(query.data)] or None
-            return bool(message.matches)
-        return create(callback_regex_filter, pattern=re.compile(pattern, flags))
+            return bool(query.matches)
+        return Filters.create(callback_regex_filter, pattern=re.compile(pattern, flags))
