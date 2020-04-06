@@ -17,4 +17,4 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
-from .helpers import ikb, btn, switch_case, color_json, Langs, try_int, array_chunk
+from .helpers import ikb, btn, kb, kbtn, array_chunk
