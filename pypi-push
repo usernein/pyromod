@@ -1,0 +1,9 @@
+PWDI=$(pwd)
+[ -d ~/pyromod ] || mkdir ~/pyromod
+cp -r * ~/pyromod/ || exit 1
+cd ~/pyromod
+rm dist/*
+python setup.py bdist_wheel
+twine upload --repository pypi dist/*
+cd $PWDI
+
