@@ -26,7 +26,11 @@ from ..utils import patch, patchable
 
 loop = asyncio.get_event_loop()
     
-        
+class ListenerCanceled(Exception):
+    pass
+
+pyrogram.errors.ListenerCanceled = ListenerCanceled
+
 @patch(pyrogram.client.client.Client)
 class Client():
     @patchable
@@ -62,8 +66,12 @@ class Client():
     def clearListener(self, chat_id, future):
         if future == self.deferred_listeners[chat_id]:
             self.deferred_listeners.pop(chat_id, None)
-            
-    __wraps__ = [__init__, listen, ask, clearListener]
+     
+    @patchable
+    def cancelListeners(self, chat_id):
+        if chat_id in self.deferred_listeners and not self.deferred_listeners[chat_id]['future'].done():
+            self.deferred_listeners[chat_id]['future'].set_exception(ListenerCanceled('The listener has been cancelled with pyrogram.Client.cancelListeners'))
+            self.clearListener(chat_id, self.deferred_listeners[chat_id]['future'])
             
 @patch(pyrogram.client.handlers.message_handler.MessageHandler)
 class MessageHandler():
@@ -103,6 +111,9 @@ class Chat(pyrogram.Chat):
     @patchable
     def ask(self, *args, **kwargs):
         return self._client.ask(self.id, *args, **kwargs)
+    @patchable
+    def cancelListeners(self):
+        return self._client.cancelListeners(self.id, *args, **kwargs)
 
 @patch(pyrogram.client.types.user_and_chats.user.User)
 class User(pyrogram.User):
@@ -112,4 +123,6 @@ class User(pyrogram.User):
     @patchable
     def ask(self, *args, **kwargs):
         return self._client.ask(self.id, *args, **kwargs)
-        
+    @patchable
+    def cancelListeners(self):
+        return self._client.cancelListeners(self.id, *args, **kwargs)
