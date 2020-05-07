@@ -42,8 +42,9 @@ class Client():
     
     @patchable
     async def listen(self, chat_id, filters=None, timeout=30):
-        chat = await self.get_chat(chat_id)
-        chat_id = chat.id
+        if type(chat_id) != int:
+            chat = await self.get_chat(chat_id)
+            chat_id = chat.id
         
         future = loop.create_future()
         future.add_done_callback(
