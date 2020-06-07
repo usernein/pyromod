@@ -28,75 +28,77 @@ loop = asyncio.get_event_loop()
     
 class ListenerCanceled(Exception):
     pass
-
 pyrogram.errors.ListenerCanceled = ListenerCanceled
 
 @patch(pyrogram.client.client.Client)
 class Client():
     @patchable
     def __init__(self, *args, **kwargs):
-        self.deferred_listeners = {}
+        self.listening = {}
         self.using_mod = True
         
         self.old__init__(*args, **kwargs)
     
     @patchable
-    async def listen(self, chat_id, filters=None, timeout=30):
+    async def listen(self, chat_id, filters=None, timeout=None):
         if type(chat_id) != int:
             chat = await self.get_chat(chat_id)
             chat_id = chat.id
         
         future = loop.create_future()
         future.add_done_callback(
-            functools.partial(self.clearListener, chat_id)
+            functools.partial(self.clear_listener, chat_id)
         )
-        self.deferred_listeners.update(
-            {chat_id: {"future": future, "filters": filters}}
-        )
-        response = await asyncio.wait_for(future, timeout)
-        return response
+        self.listening.update({
+            chat_id: {"future": future, "filters": filters}
+        })
+        return await asyncio.wait_for(future, timeout)
     
     @patchable
-    async def ask(self, chat_id, text, filters=None, timeout=30, *args, **kwargs):
+    async def ask(self, chat_id, text, filters=None, timeout=None, *args, **kwargs):
         request = await self.send_message(chat_id, text, *args, **kwargs)
         response = await self.listen(chat_id, filters, timeout)
         response.request = request
         return response
    
     @patchable
-    def clearListener(self, chat_id, future):
-        if future == self.deferred_listeners[chat_id]:
-            self.deferred_listeners.pop(chat_id, None)
+    def clear_listener(self, chat_id, future):
+        if future == self.listening[chat_id]:
+            self.listening.pop(chat_id, None)
      
     @patchable
-    def cancelListeners(self, chat_id):
-        if chat_id in self.deferred_listeners and not self.deferred_listeners[chat_id]['future'].done():
-            self.deferred_listeners[chat_id]['future'].set_exception(ListenerCanceled('The listener has been cancelled with pyrogram.Client.cancelListeners'))
-            self.clearListener(chat_id, self.deferred_listeners[chat_id]['future'])
-            
+    def cancel_listener(self, chat_id):
+        listener = self.listening.get(chat_id)
+        if not listener or not listener['future'].done():
+            return
+        
+        listener['future'].set_exception(ListenerCanceled())
+        self.clear_listener(chat_id, listener['future'])
+        
 @patch(pyrogram.client.handlers.message_handler.MessageHandler)
 class MessageHandler():
     @patchable
     def __init__(self, callback: callable, filters=None):
         self.user_callback = callback
-        self.old__init__(self.resolveListener, filters)
+        self.old__init__(self.resolve_listener, filters)
     
     @patchable
-    async def resolveListener(self, client, message, *args):    
-        future_exists = message.chat.id in client.deferred_listeners
-        if future_exists and not client.deferred_listeners[message.chat.id]['future'].done():
-            client.deferred_listeners[message.chat.id]['future'].set_result(message)
+    async def resolve_listener(self, client, message, *args):
+        listener = client.listening.get(message.chat.id)
+        if listener and not listener['future'].done():
+            listener['future'].set_result(message)
         else:
-            if future_exists and client.deferred_listeners[message.chat.id]['future'].done():
-                client.clearListener(message.chat.id, client.deferred_listeners[message.chat.id]['future'])
+            if listener and listener['future'].done():
+                client.clear_listener(message.chat.id, listener['future'])
             await self.user_callback(client, message, *args)
     
     @patchable
     def check(self, update):
         client = update._client
-        listener = client.deferred_listeners[update.chat.id] if update.chat.id in client.deferred_listeners else None
-        if listener and not listener['future'].done() and (listener['filters'](update) if callable(listener['filters']) else True):
-            return True
+        listener = client.listening.get(update.chat.id)
+        
+        if listener and not listener['future'].done():
+            return callable(listener['filters']) and listener['filters'](update)
             
         return (
             self.filters(update)
@@ -113,8 +115,8 @@ class Chat(pyrogram.Chat):
     def ask(self, *args, **kwargs):
         return self._client.ask(self.id, *args, **kwargs)
     @patchable
-    def cancelListeners(self):
-        return self._client.cancelListeners(self.id, *args, **kwargs)
+    def cancel_listener(self):
+        return self._client.cancel_listener(self.id)
 
 @patch(pyrogram.client.types.user_and_chats.user.User)
 class User(pyrogram.User):
@@ -125,5 +127,5 @@ class User(pyrogram.User):
     def ask(self, *args, **kwargs):
         return self._client.ask(self.id, *args, **kwargs)
     @patchable
-    def cancelListeners(self):
-        return self._client.cancelListeners(self.id, *args, **kwargs)
+    def cancel_listener(self):
+        return self._client.cancel_listener(self.id)
