@@ -69,7 +69,7 @@ class Client():
     @patchable
     def cancel_listener(self, chat_id):
         listener = self.listening.get(chat_id)
-        if not listener or not listener['future'].done():
+        if not listener or listener['future'].done():
             return
         
         listener['future'].set_exception(ListenerCanceled())
