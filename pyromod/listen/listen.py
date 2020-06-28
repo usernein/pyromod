@@ -98,7 +98,7 @@ class MessageHandler():
         listener = client.listening.get(update.chat.id)
         
         if listener and not listener['future'].done():
-            return callable(listener['filters']) and listener['filters'](update)
+            return listener['filters'](update) if callable(listener['filters']) else True
             
         return (
             self.filters(update)
