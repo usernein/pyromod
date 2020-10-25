@@ -19,19 +19,7 @@ along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import pyrogram 
-import re
 
-from ..utils import patch, patchable
-
-# To allow Filters.callback_regex to exist:
-pyrogram.client.types.bots_and_keyboards.callback_query.CallbackQuery.matches = None 
-
-@patch(pyrogram.client.filters.filters.Filters)
-class Filters:
-    create = pyrogram.client.filters.filters.Filters.create
-    
-    @patchable
-    @create
-    @staticmethod
-    def dice(ctx, message):
-        return hasattr(message, 'dice') and message.dice
+def dice(ctx, message):
+    return hasattr(message, 'dice') and message.dice
+pyrogram.filters.dice = dice

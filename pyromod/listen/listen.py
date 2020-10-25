@@ -30,7 +30,7 @@ class ListenerCanceled(Exception):
     pass
 pyrogram.errors.ListenerCanceled = ListenerCanceled
 
-@patch(pyrogram.client.client.Client)
+@patch(pyrogram.client.Client)
 class Client():
     @patchable
     def __init__(self, *args, **kwargs):
@@ -75,7 +75,7 @@ class Client():
         listener['future'].set_exception(ListenerCanceled())
         self.clear_listener(chat_id, listener['future'])
         
-@patch(pyrogram.client.handlers.message_handler.MessageHandler)
+@patch(pyrogram.handlers.message_handler.MessageHandler)
 class MessageHandler():
     @patchable
     def __init__(self, callback: callable, filters=None):
@@ -93,21 +93,20 @@ class MessageHandler():
             await self.user_callback(client, message, *args)
     
     @patchable
-    def check(self, update):
-        client = update._client
+    async def check(self, client, update):
         listener = client.listening.get(update.chat.id)
         
         if listener and not listener['future'].done():
-            return listener['filters'](update) if callable(listener['filters']) else True
+            return await listener['filters'](client, update) if callable(listener['filters']) else True
             
         return (
-            self.filters(update)
+            await self.filters(client, update)
             if callable(self.filters)
             else True
         )
 
-@patch(pyrogram.client.types.user_and_chats.chat.Chat)
-class Chat(pyrogram.Chat):
+@patch(pyrogram.types.user_and_chats.chat.Chat)
+class Chat(pyrogram.types.Chat):
     @patchable
     def listen(self, *args, **kwargs):
         return self._client.listen(self.id, *args, **kwargs)
@@ -118,8 +117,8 @@ class Chat(pyrogram.Chat):
     def cancel_listener(self):
         return self._client.cancel_listener(self.id)
 
-@patch(pyrogram.client.types.user_and_chats.user.User)
-class User(pyrogram.User):
+@patch(pyrogram.types.user_and_chats.user.User)
+class User(pyrogram.types.User):
     @patchable
     def listen(self, *args, **kwargs):
         return self._client.listen(self.id, *args, **kwargs)

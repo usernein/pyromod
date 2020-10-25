@@ -28,7 +28,7 @@ I separated the patches between packages to allow you to import only what you wa
 Just import it, it will automatically do the monkeypatch and you'll get these new methods:
 - `await pyrogram.Client.listen(chat_id, filters=None, timeout=30)`
 Awaits for a new message in the specified chat and returns it
-You can pass Update Filters to the filters parameter just like you do for the update handlers. e.g. `filters=Filters.photo & Filters.bot`
+You can pass Update Filters to the filters parameter just like you do for the update handlers. e.g. `filters=filters.photo & filters.bot`
 
 - `await pyrogram.Client.ask(text, chat_id, filters=None, timeout=30)`
 Same of `.listen()` above, but sends a message before awaiting
@@ -47,15 +47,10 @@ client = Client(...)
 ```
 
 ### `pyromod.filters`
-Import it and the following Update Filters will be monkeypatched to `pyrogram.Filters`:
+Import it and the following Update Filters will be monkeypatched to `pyrogram.filters`:
 
-- `Filters.dice`
+- `filters.dice`
 A dice message.
-
-- `Filters.callback_regex(pattern, flags: int = 0)`
-Same of `Filters.regex`, but for CallbackQuery updates
-The CallbackQuery object will hold the matches on the new `CallbackQuery.matches` attribute (just like `Message.matches`)
-
 
 ### Copyright & License
 This project may include snippets of Pyrogram code
