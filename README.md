@@ -52,6 +52,37 @@ Import it and the following Update Filters will be monkeypatched to `pyrogram.fi
 - `filters.dice`
 A dice message.
 
+### `pyromod.nav`
+Tools for creating navigation keyboards.
+
+- `pyromod.nav.Pagination`
+Creates a full pagination keyboard. Usage:
+```python
+from pyrogram import Client, filters
+from pyromod.nav import Pagination
+from pyromod.helpers import ikb
+
+def page_data(page):
+    return f'view_page {page}'
+def item_data(item):
+    return f'view_item {item}'
+def item_title(item):
+    return f'Item {item}'
+
+@Client.on_message(filters.regex('/nav'))
+async def on_nav(c,m):
+    objects = [*range(1,100)]
+    page = Pagination(
+        objects,
+        page_data=page_data, # callback to define the callback_data for page buttons in the bottom
+        item_data=item_data, # callback to define the callback_data for each item button
+        item_title=item_title # callback to define the text for each item button
+    )
+    index = 0 # in which page is it now?
+    lines = 5 # how many objects to show in each page
+    kb = page.create(index, lines)
+    await m.reply('Test', reply_markup=ikb(kb))
+```
 ### Copyright & License
 This project may include snippets of Pyrogram code
 - Pyrogram - Telegram MTProto API Client Library for Python. Copyright (C) 2017-2020 Dan <<https://github.com/delivrance>>
