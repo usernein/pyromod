@@ -64,10 +64,10 @@ from pyromod.helpers import ikb
 
 def page_data(page):
     return f'view_page {page}'
-def item_data(item):
-    return f'view_item {item}'
-def item_title(item):
-    return f'Item {item}'
+def item_data(item, page):
+    return f'view_item {item} {page}'
+def item_title(item, page):
+    return f'Item {item} of page {page}'
 
 @Client.on_message(filters.regex('/nav'))
 async def on_nav(c,m):
@@ -79,10 +79,36 @@ async def on_nav(c,m):
         item_title=item_title # callback to define the text for each item button
     )
     index = 0 # in which page is it now?
-    lines = 5 # how many objects to show in each page
-    kb = page.create(index, lines)
+    lines = 5 # how many lines of the keyboard to include for the items
+    columns = how many columns include in each items' line
+    kb = page.create(index, lines, columns)
     await m.reply('Test', reply_markup=ikb(kb))
 ```
+
+### `pyromod.helpers`
+Tools for creating inline keyboards a lot easier.
+
+- `pyromod.helpers.ikb`
+Creates a inline keyboard. It's first and only argument must be a list (the keyboard) containing lists (the lines) of buttons.
+The buttons can also be lists or tuples. I use tuples to not have to deal with a lot of brackets.
+The button syntax must be this: (TEXT, CALLBACK_DATA) or (TEXT, VALUE, TYPE), where TYPE can be 'url' or any other supported button type and VALUE is its value. This syntax will be converted to {"text": TEXT, TYPE: VALUE). If TYPE is CALLBACK_DATA, you can omit it, just like the fist syntax above.
+Examples:
+```python
+from pyromod.helpers import ikb
+...
+keyboard = ikb([
+    [('Button 1', 'call_1'), ('Button 2', 'call_2')],
+    [('Another button', 't.me/pyromod', 'url')]
+])
+await message.reply('Test', reply_markup=keyboard)
+```
+- `pyromod.helpers.array_chunk`
+Chunk the elements of a list into small lists. i.e. [1, 2, 3, 4] can become [[1,2], [3,4]]. This is extremely useful if you want to build a keyboard dinamically with more than 1 column. You just put all buttons together in a list and run:
+```python
+lines = array_chunk(buttons, 2) # generate a list of lines with 2 buttons on each
+keyboard = ikb(lines)
+```
+
 ### Copyright & License
 This project may include snippets of Pyrogram code
 - Pyrogram - Telegram MTProto API Client Library for Python. Copyright (C) 2017-2020 Dan <<https://github.com/delivrance>>
