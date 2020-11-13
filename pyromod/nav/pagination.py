@@ -18,26 +18,29 @@ You should have received a copy of the GNU General Public License
 along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
 import math
+from ..helpers import array_chunk
 
 class Pagination:
     def __init__(self, objects, page_data=None, item_data=None, item_title=None):
-        default_callback = (lambda x: str(x))
+        default_page_callback = (lambda x: str(x))
+        default_item_callback = (lambda i, pg: f'[{pg}] {i}')
         self.objects = objects
-        self.page_data = page_data or default_callback
-        self.item_data = item_data or default_callback
-        self.item_title = item_title or default_callback
+        self.page_data = page_data or default_page_callback
+        self.item_data = item_data or default_item_callback
+        self.item_title = item_title or default_item_callback
     
-    def create(self, page, lines=5):
-        page = int(page)
-        offset = page*lines
-        stop = offset+lines
+    def create(self, page, lines=5, columns=1):
+        quant_per_page = lines*columns
+        page = 1 if page <= 0 else page
+        offset = (page-1)*quant_per_page
+        stop = offset+quant_per_page
         cutted = self.objects[offset:stop]
         
         total = len(self.objects)
-        pages_range = [*range(1, math.ceil(total/lines)+1)] # each item is a page
+        pages_range = [*range(1, math.ceil(total/quant_per_page)+1)] # each item is a page
         last_page = len(pages_range)
         
-        #pp({k:v for k,v in locals().items() if k in ['total', 'page', 'offset', 'stop', 'pages_range', 'last_page']})
+        
         nav = []
         if page <= 3:
             for n in [1,2,3]:
@@ -70,11 +73,12 @@ class Pagination:
                 (f'{last_page} »', self.page_data(last_page)),
             ]
         
-        kb_lines = []
+        buttons = []
         for item in cutted:
-            kb_lines.append(
-                [(self.item_title(item), self.item_data(item))]
+            buttons.append(
+                (self.item_title(item, page), self.item_data(item, page))
             )
+        kb_lines = array_chunk(buttons, columns)
         if last_page > 1:
             kb_lines.append(nav)
         
