@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import inspect
 import asyncio
 import functools
 import pyrogram
@@ -99,11 +100,17 @@ class MessageHandler():
         if listener and not listener['future'].done():
             return await listener['filters'](client, update) if callable(listener['filters']) else True
             
-        return (
-            await self.filters(client, update)
-            if callable(self.filters)
-            else True
-        )
+        if callable(self.filters):
+            if inspect.iscoroutinefunction(self.filters.__call__):
+                return await self.filters(client, update)
+            else:
+                return await client.loop.run_in_executor(
+                    client.executor,
+                    self.filters,
+                    client, update
+                )
+
+        return True
 
 @patch(pyrogram.types.user_and_chats.chat.Chat)
 class Chat(pyrogram.types.Chat):
