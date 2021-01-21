@@ -128,3 +128,15 @@ class User(pyrogram.types.User):
     @patchable
     def cancel_listener(self):
         return self._client.cancel_listener(self.id)
+
+@patch(pyrogram.types.messages_and_media.message.Message)
+class Message(pyrogram.types.Message):
+    @patchable
+    def listen(self, *args, **kwargs):
+        return self._client.listen(self.chat.id, *args, **kwargs)
+    @patchable
+    def ask(self, *args, **kwargs):
+        return self._client.ask(self.chat.id, *args, **kwargs)
+    @patchable
+    def cancel_listener(self):
+        return self._client.cancel_listener(self.chat.id)
