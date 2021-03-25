@@ -63,7 +63,7 @@ class Client():
    
     @patchable
     def clear_listener(self, chat_id, future):
-        if future == self.listening[chat_id]:
+        if future == self.listening[chat_id]["future"]:
             self.listening.pop(chat_id, None)
      
     @patchable
