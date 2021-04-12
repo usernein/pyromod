@@ -111,6 +111,6 @@ keyboard = ikb(lines)
 
 ### Copyright & License
 This project may include snippets of Pyrogram code
-- Pyrogram - Telegram MTProto API Client Library for Python. Copyright (C) 2017-2020 Dan <<https://github.com/delivrance>>
+- Pyrogram - Telegram MTProto API Client Library for Python. Copyright (C) 2017-2021 Dan <<https://github.com/delivrance>>
 
 Licensed under the terms of the [GNU Lesser General Public License v3 or later (LGPLv3+)](COPYING.lesser)
