@@ -23,3 +23,18 @@ import pyrogram
 def dice(ctx, message):
     return hasattr(message, 'dice') and message.dice
 pyrogram.filters.dice = dice
+
+async def group_admin(_, client: pyrogram.Client, m: pyrogram.types.Message):
+    if (
+        m.chat.type != pyrogram.enums.ChatType.SUPERGROUP
+        and m.chat.type != pyrogram.enums.ChatType.GROUP
+    ):
+        return False
+    id = m.from_user.id
+    admins = []
+    async for m in client.get_chat_members(m.chat.id, filter=pyrogram.enums.ChatMembersFilter.ADMINISTRATORS):
+        admins.append(m.user.id)
+    return id in admins
+
+
+pyrogram.filters.group_admin = pyrogram.filters.create(group_admin)
