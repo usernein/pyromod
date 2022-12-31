@@ -18,4 +18,6 @@ You should have received a copy of the GNU General Public License
 along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-__version__ = "1.5"
+__version__ = "2.1"
+
+from .listen import *
