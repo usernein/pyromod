@@ -20,7 +20,7 @@ along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
 import functools
-from typing import Optional, Callable
+from typing import Optional, Callable, Any
 import pyrogram
 
 from enum import Enum
@@ -43,6 +43,20 @@ class PyromodConfig:
     throw_exceptions = None
 
 
+class Identifier(tuple):
+    def __getattribute__(self, __name: str) -> Any:
+        tuple_pos = {
+            "chat_id": 0,
+            "user_id": 1,
+            "message_id": 2,
+        }
+        if __name not in tuple_pos:
+            raise AttributeError(__name)
+
+        pos = tuple_pos[__name]
+        return self[0] if pos < len(self) else None
+
+
 ListenerTypes = Enum("ListenerTypes", ["MESSAGE", "CALLBACK_QUERY"])
 
 
@@ -56,67 +70,108 @@ class Client:
     @patchable
     async def listen(
         self,
-        chat_id,
-        user_id=None,
+        identifier: tuple,
         filters=None,
         listener_type=ListenerTypes.MESSAGE,
         timeout=None,
-        message_id=None,
     ):
         if type(listener_type) != ListenerTypes:
             raise TypeError(
-                "Parameter listener_type should be a value from pyromod.listen.ListenerTypes"
+                "Parameter listener_type should be a"
+                " value from pyromod.listen.ListenerTypes"
             )
+
+        identifier = (
+            Identifier(identifier) if type(identifier) == tuple else identifier
+        )
 
         future = loop.create_future()
         future.add_done_callback(
-            functools.partial(self.stop_listening, chat_id, user_id)
+            functools.partial(self.stop_listening, identifier)
         )
 
         self.futures[listener_type].update(
-            {(chat_id, user_id, message_id): {"future": future, "filters": filters}}
+            {identifier: {"future": future, "filters": filters}}
         )
 
         try:
             return await asyncio.wait_for(future, timeout)
         except asyncio.exceptions.TimeoutError:
             if callable(PyromodConfig.timeout_handler):
-                PyromodConfig.timeout_handler(chat_id, user_id, filters, timeout)
+                PyromodConfig.timeout_handler(identifier, filters, timeout)
             elif PyromodConfig.throw_exceptions:
                 raise ListenerTimeout(timeout)
 
     @patchable
     async def ask(
         self,
-        chat_id,
         text,
-        user_id=None,
+        identifier: tuple,
         filters=None,
         listener_type=ListenerTypes.MESSAGE,
         timeout=None,
         *args,
         **kwargs
     ):
-        request = await self.send_message(chat_id, text, *args, **kwargs)
-        response = await self.listen(chat_id, user_id, filters, listener_type, timeout)
+        identifier = (
+            Identifier(identifier) if type(identifier) == tuple else identifier
+        )
+
+        request = await self.send_message(
+            identifier.chat_id, text, *args, **kwargs
+        )
+        response = await self.listen(
+            identifier, filters, listener_type, timeout
+        )
         response.request = request
+
         return response
-    
-    @patchable
-    def get_listener(self, chat_id, user_id, message_id):
-        
+
+    def match_listener(self, data):  # needed for matching when message_id or
+        # user_id is null, and to take precedence
+        data = Identifier(data)
+
+        # case with 3 args on identifier
+        # most probably waiting for a specific user
+        # to click a button in a specific message
+        if data in self.futures:
+            return self.futures[data]
+
+        # cases with 2 args on identifier
+        # (None, user, message) does not make
+        # sense since the message_id is not unique
+        elif Identifier(data.chat_id, data.user_id, None) in self.futures:
+            matched = Identifier(data.chat_id, data.user_id, None)
+            return self.futures[matched]
+        elif Identifier(data.chat_id, None, data.message_id) in self.futures:
+            matched = Identifier(data.chat_id, None, data.message_id)
+            return self.futures[matched]
+
+        # cases with 1 arg on identifier
+        # (None, None, message) does not make sense as well
+        elif Identifier(data.chat_id, None, None) in self.futures:
+            matched = Identifier(data.chat_id, None, None)
+            return self.futures[matched]
+        elif Identifier(None, data.user_id, None) in self.futures:
+            matched = Identifier(None, data.user_id, None)
+            return self.futures[matched]
+
     @patchable
     def remove_future(self, unwanted_future):
         self.futures = {
             listener_type: {
-                k: v for k, v in listener_array if v["future"] != unwanted_future
+                k: v
+                for k, v in listener_array
+                if v["future"] != unwanted_future
             }
             for listener_type, listener_array in self.futures.items()
         }
 
     @patchable
-    def stop_listening(self, chat_id, user_id, listener_type=ListenerTypes.MESSAGE):
-        listener = self.futures[listener_type].get((chat_id, user_id))
+    def stop_listening(
+        self, identifier: tuple, listener_type=ListenerTypes.MESSAGE
+    ):
+        listener = self.futures[listener_type].get(identifier)
 
         if not listener:
             return
@@ -125,7 +180,7 @@ class Client:
             return
 
         if callable(PyromodConfig.canceled_handler):
-            PyromodConfig.canceled_handler(chat_id, user_id)
+            PyromodConfig.canceled_handler(identifier)
         elif PyromodConfig.throw_exceptions:
             listener["future"].set_exception(ListenerCanceled())
 
@@ -142,7 +197,7 @@ class MessageHandler:
     @patchable
     async def check(self, client, message):
         listener = client.futures[ListenerTypes.MESSAGE].get(
-            (message.chat.id, message.from_user.id)
+            (message.chat.id, message.from_user.id, None)
         )
         filters = listener["filters"] if listener else self.filters
 
