@@ -18,17 +18,30 @@ You should have received a copy of the GNU General Public License
 along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+
+class PyromodConfig:
+    timeout_handler = None
+    stopped_handler = None
+    throw_exceptions = None
+    unallowed_click_alert = True
+    unallowed_click_alert_text = (
+        "[pyromod] You're not expected to click this button."
+    )
+
+
 def patch(obj):
     def is_patchable(item):
-        return getattr(item[1], 'patchable', False)
+        return getattr(item[1], "patchable", False)
 
     def wrapper(container):
-        for name,func in filter(is_patchable, container.__dict__.items()):
+        for name, func in filter(is_patchable, container.__dict__.items()):
             old = getattr(obj, name, None)
-            setattr(obj, 'old'+name, old)
+            setattr(obj, "old" + name, old)
             setattr(obj, name, func)
         return container
+
     return wrapper
+
 
 def patchable(func):
     func.patchable = True

@@ -191,32 +191,23 @@ class MessageHandler:
             (message.chat.id, message.from_user.id, message.id),
             ListenerTypes.MESSAGE,
         )[0]
-        # filters = listener["filters"] if listener else self.filters
-        # return await filters(client, message) if callable(filters) else True
-        listener_does_match = (
-            (
-                await listener["filters"](client, message)
-                if callable(listener["filters"])
-                else True
+
+        listener_does_match = handler_does_match = False
+
+        if listener:
+            filters = listener["filters"]
+            listener_does_match = (
+                await filters(client, message) if callable(filters) else True
             )
-            if listener
-            else False
-        )
-        registered_handler_does_match = (
+        handler_does_match = (
             await self.filters(client, message)
             if callable(self.filters)
             else True
         )
 
-        print(
-            {
-                "msg": (message.chat.id, message.id),
-                "listener": listener_does_match,
-                "handler": registered_handler_does_match,
-                "handler_name": self.registered_handler.__name__,
-            },
-        )
-        return listener_does_match or registered_handler_does_match
+        # let handler get the chance to handle if listener
+        # exists but its filters doesn't match
+        return listener_does_match or handler_does_match
 
     @patchable
     async def resolve_future(self, client, message, *args):
@@ -225,24 +216,19 @@ class MessageHandler:
             (message.chat.id, message.from_user.id, message.id),
             listener_type,
         )
-
-        listener_does_match = (
-            (
-                await listener["filters"](client, message)
-                if callable(listener["filters"])
-                else True
+        listener_does_match = False
+        if listener:
+            filters = listener["filters"]
+            listener_does_match = (
+                await filters(client, message) if callable(filters) else True
             )
-            if listener
-            else False
-        )
 
-        if listener and listener_does_match:
+        if listener_does_match:
             if not listener["future"].done():
                 listener["future"].set_result(message)
-                print("    -> set_future")
                 del client.listeners[listener_type][identifier]
+                raise pyrogram.StopPropagation
         else:
-            print("    -> handler")
             await self.registered_handler(client, message, *args)
 
 
