@@ -160,9 +160,14 @@ class Client:
 
     @patchable
     def stop_listening(
-        self, data: tuple, listener_type: ListenerTypes = ListenerTypes.MESSAGE
+        self,
+        data: Optional[tuple] = None,
+        listener_type: ListenerTypes = ListenerTypes.MESSAGE,
+        identifier_pattern: Optional[tuple] = None,
     ):
-        listener, identifier = self.match_listener(data, listener_type)
+        listener, identifier = self.match_listener(
+            data, listener_type, identifier_pattern
+        )
 
         if not listener:
             return
@@ -320,7 +325,7 @@ class Chat(pyrogram.types.Chat):
     @patchable
     def stop_listening(self, *args, **kwargs):
         return self._client.stop_listening(
-            (self.id, None, None), *args, **kwargs
+            *args, identifier_pattern=(self.id, None, None), **kwargs
         )
 
 
@@ -339,5 +344,5 @@ class User(pyrogram.types.User):
     @patchable
     def stop_listening(self, *args, **kwargs):
         return self._client.stop_listening(
-            (None, self.id, None), *args, **kwargs
+            *args, identifier_pattern=(None, self.id, None), **kwargs
         )
