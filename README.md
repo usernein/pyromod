@@ -2,7 +2,7 @@
 [![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat&logo=telegram&logoColor=white)](https://t.me/pyromodchat)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/usernein/pyromod)
 ![GitHub commits since latest release (by date) for a branch](https://img.shields.io/github/commits-since/usernein/pyromod/latest)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/pyromod)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/pyromod?color=4CAF50)
 
 A monkeypatcher add-on for Pyrogram which does conversation handling and other cool stuff.
 
