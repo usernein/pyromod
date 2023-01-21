@@ -324,7 +324,7 @@ class Message(pyrogram.types.messages_and_media.message.Message):
         filters=None,
         alert: Union[str, bool] = True,
     ):
-        msg_id = getattr(self, "id", getattr(self, "message_id", None)),
+        msg_id = getattr(self, "id", getattr(self, "message_id", None))
         return await self._client.listen(
             (self.chat.id, from_user_id, msg_id),
             listener_type=ListenerTypes.CALLBACK_QUERY,
