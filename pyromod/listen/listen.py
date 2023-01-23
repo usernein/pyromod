@@ -19,12 +19,13 @@ along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import asyncio
-from typing import Optional, Callable, Union
 import pyrogram
-from enum import Enum
-from ..utils import patch, patchable, PyromodConfig
 
-loop = asyncio.get_event_loop()
+from inspect import iscoroutinefunction
+from typing import Optional, Callable, Union
+from enum import Enum
+
+from ..utils import patch, patchable, PyromodConfig
 
 
 class ListenerStopped(Exception):
@@ -62,7 +63,7 @@ class Client:
                 " value from pyromod.listen.ListenerTypes"
             )
 
-        future = loop.create_future()
+        future = self.loop.create_future()
         future.add_done_callback(
             lambda f: self.stop_listening(identifier, listener_type)
         )
@@ -94,7 +95,7 @@ class Client:
         listener_type=ListenerTypes.MESSAGE,
         timeout=None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         request = await self.send_message(identifier[0], text, *args, **kwargs)
         response = await self.listen(
@@ -192,8 +193,10 @@ class MessageHandler:
 
     @patchable
     async def check(self, client, message):
+        if user := getattr(message, "from_user", None):
+            user = user.id
         listener = client.match_listener(
-            (message.chat.id, message.from_user.id, message.id),
+            (message.chat.id, user, message.id),
             ListenerTypes.MESSAGE,
         )[0]
 
@@ -201,14 +204,25 @@ class MessageHandler:
 
         if listener:
             filters = listener["filters"]
-            listener_does_match = (
-                await filters(client, message) if callable(filters) else True
-            )
-        handler_does_match = (
-            await self.filters(client, message)
-            if callable(self.filters)
-            else True
-        )
+            if callable(filters):
+                if iscoroutinefunction(filters.__call__):
+                    listener_does_match = await filters(client, message)
+                else:
+                    listener_does_match = await client.loop.run_in_executor(
+                        None, filters, client, message
+                    )
+            else:
+                listener_does_match = True
+
+        if callable(self.filters):
+            if iscoroutinefunction(self.filters.__call__):
+                handler_does_match = await self.filters(client, message)
+            else:
+                handler_does_match = await client.loop.run_in_executor(
+                    None, self.filters, client, message
+                )
+        else:
+            handler_does_match = True
 
         # let handler get the chance to handle if listener
         # exists but its filters doesn't match
@@ -217,16 +231,24 @@ class MessageHandler:
     @patchable
     async def resolve_future(self, client, message, *args):
         listener_type = ListenerTypes.MESSAGE
+        if user := getattr(message, "from_user", None):
+            user = user.id
         listener, identifier = client.match_listener(
-            (message.chat.id, message.from_user.id, message.id),
+            (message.chat.id, user, message.id),
             listener_type,
         )
         listener_does_match = False
         if listener:
             filters = listener["filters"]
-            listener_does_match = (
-                await filters(client, message) if callable(filters) else True
-            )
+            if callable(filters):
+                if iscoroutinefunction(filters.__call__):
+                    listener_does_match = await filters(client, message)
+                else:
+                    listener_does_match = await client.loop.run_in_executor(
+                        None, filters, client, message
+                    )
+            else:
+                listener_does_match = True
 
         if listener_does_match:
             if not listener["future"].done():
@@ -276,7 +298,15 @@ class CallbackQueryHandler:
 
         filters = listener["filters"] if listener else self.filters
 
-        return await filters(client, query) if callable(filters) else True
+        if callable(filters):
+            if iscoroutinefunction(filters.__call__):
+                return await filters(client, query)
+            else:
+                return await client.loop.run_in_executor(
+                    None, filters, client, query
+                )
+        else:
+            return True
 
     @patchable
     async def resolve_future(self, client, query, *args):
