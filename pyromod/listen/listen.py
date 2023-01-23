@@ -202,10 +202,10 @@ class MessageHandler:
         if listener:
             filters = listener["filters"]
             listener_does_match = (
-                await filters(client, message) if callable(filters) else True
+                (await filters(client, message)) if callable(filters) else True
             )
         handler_does_match = (
-            await self.filters(client, message)
+            (await self.filters(client, message))
             if callable(self.filters)
             else True
         )
@@ -225,7 +225,7 @@ class MessageHandler:
         if listener:
             filters = listener["filters"]
             listener_does_match = (
-                await filters(client, message) if callable(filters) else True
+                (await filters(client, message)) if callable(filters) else True
             )
 
         if listener_does_match:
@@ -276,7 +276,7 @@ class CallbackQueryHandler:
 
         filters = listener["filters"] if listener else self.filters
 
-        return await filters(client, query) if callable(filters) else True
+        return (await filters(client, query)) if callable(filters) else True
 
     @patchable
     async def resolve_future(self, client, query, *args):
