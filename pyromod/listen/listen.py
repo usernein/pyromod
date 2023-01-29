@@ -268,8 +268,11 @@ class CallbackQueryHandler:
 
     @patchable
     async def check(self, client, query):
+        chatID, mID = None, None
+        if message := getattr(query, "message", None):
+            chatID, mID = message.chat.id, message.id
         listener = client.match_listener(
-            (query.message.chat.id, query.from_user.id, query.message.id),
+            (chatID, query.from_user.id, mID),
             ListenerTypes.CALLBACK_QUERY,
         )[0]
 
@@ -277,9 +280,9 @@ class CallbackQueryHandler:
         if PyromodConfig.unallowed_click_alert:
             permissive_listener = client.match_listener(
                 identifier_pattern=(
-                    query.message.chat.id,
+                    chatID,
                     None,
-                    query.message.id,
+                    mID,
                 ),
                 listener_type=ListenerTypes.CALLBACK_QUERY,
             )[0]
@@ -311,8 +314,11 @@ class CallbackQueryHandler:
     @patchable
     async def resolve_future(self, client, query, *args):
         listener_type = ListenerTypes.CALLBACK_QUERY
+        chatID, mID = None, None
+        if message := getattr(query, "message", None):
+            chatID, mID = message.chat.id, message.id
         listener, identifier = client.match_listener(
-            (query.message.chat.id, query.from_user.id, query.message.id),
+            (chatID, query.from_user.id, mID),
             listener_type,
         )
 
