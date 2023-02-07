@@ -37,9 +37,9 @@ class Pagination:
         self.__row_per_page = row_per_page
         self.__current_page = Page
         self.__Total_page = self.__Total_page()
-        self.__Back = Back if isinstance(Back, list) else ikb([("↩️", "Back")], Markup=False)[0]
-        self.__Backward = Backward if isinstance(Backward, list) else ikb([("⬅️", "Backward")], Markup=False)[0]
-        self.__Forward = Forward if isinstance(Forward, list) else ikb([("➡️", "Forward")], Markup=False)[0]
+        self.__Back = Back[0] if isinstance(Back, list) else ikb([("↩️", "Back")], Markup=False)[0]
+        self.__Backward = Backward[0] if isinstance(Backward, list) else ikb([("⬅️", "Backward")], Markup=False)[0]
+        self.__Forward = Forward[0] if isinstance(Forward, list) else ikb([("➡️", "Forward")], Markup=False)[0]
 
     def __ikb_move_btns(self):
         if self.__current_page == self.__Total_page and self.__Total_page == 1:
@@ -52,7 +52,7 @@ class Pagination:
             self.__Attach.extend([self.__Back + self.__Forward])
 
         elif self.__Total_page > self.__current_page > 1:
-            self.__Attach.extend([self.__Backward + self.__Backward])
+            self.__Attach.extend([self.__Backward + self.__Forward])
 
     def __create_page(self):
         Start = (self.__current_page - 1) * self.__row_per_page
