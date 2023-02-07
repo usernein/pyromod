@@ -1,85 +1,68 @@
-"""
-pyromod - A monkeypatcher add-on for Pyrogram
-Copyright (C) 2020 Cezar H. <https://github.com/usernein>
+from pyrogram.types import InlineKeyboardButton
+from ..helpers import ikb
 
-This file is part of pyromod.
-
-pyromod is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-pyromod is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
-"""
-import math
-from ..helpers import array_chunk
 
 class Pagination:
-    def __init__(self, objects, page_data=None, item_data=None, item_title=None):
-        default_page_callback = (lambda x: str(x))
-        default_item_callback = (lambda i, pg: f'[{pg}] {i}')
-        self.objects = objects
-        self.page_data = page_data or default_page_callback
-        self.item_data = item_data or default_item_callback
-        self.item_title = item_title or default_item_callback
-    
-    def create(self, page, lines=5, columns=1):
-        quant_per_page = lines*columns
-        page = 1 if page <= 0 else page
-        offset = (page-1)*quant_per_page
-        stop = offset+quant_per_page
-        cutted = self.objects[offset:stop]
-        
-        total = len(self.objects)
-        pages_range = [*range(1, math.ceil(total/quant_per_page)+1)] # each item is a page
-        last_page = len(pages_range)
-        
-        
-        nav = []
-        if page <= 3:
-            for n in [1,2,3]:
-                if n not in pages_range:
-                    continue
-                text = f"· {n} ·" if n == page else n
-                nav.append( (text, self.page_data(n)) )
-            if last_page >= 4:
-                nav.append(
-                    ('4 ›' if last_page > 5 else 4, self.page_data(4))
-                )
-            if last_page > 4:
-                nav.append(
-                    (f'{last_page} »' if last_page > 5 else last_page, self.page_data(last_page))
-                )
-        elif page >= last_page-2:
-            nav.extend([
-                (f'« 1' if last_page-4 > 1 else 1, self.page_data(1)),
-                (f'‹ {last_page-3}' if last_page-4 > 1 else last_page-3, self.page_data(last_page-3))
-            ])
-            for n in range(last_page-2, last_page+1):
-                text = f"· {n} ·" if n == page else n
-                nav.append( (text, self.page_data(n)) )
-        else:
-            nav = [
-                (f'« 1', self.page_data(1)),
-                (f'‹ {page-1}', self.page_data(page-1)),
-                (f'· {page} ·', "noop"),
-                (f'{page+1} ›', self.page_data(page+1)),
-                (f'{last_page} »', self.page_data(last_page)),
-            ]
-        
-        buttons = []
-        for item in cutted:
-            buttons.append(
-                (self.item_title(item, page), self.item_data(item, page))
-            )
-        kb_lines = array_chunk(buttons, columns)
-        if last_page > 1:
-            kb_lines.append(nav)
-        
-        return kb_lines
+    """
+     Creates a full paginated menu
+
+    Parameters:
+        List: List of your items
+
+        Attach: Pass the empty predefined list, to append items that should be shown.
+
+        Back: Pass your button for returning to previous menu. If empty, default value will be used.
+            Default: ("↩️", "callback_data=Back")
+
+        Backward: Pass your button to show previous page. If empty, default value will be used.
+            Default: ("⬅️", "callback_data=Backward")
+
+        Forward: Pass your button to show next page. If empty, default value will be used.
+            Default: ("➡️", "callback_data=Forward")
+
+        Page: Pass the page number that should be shown.
+
+        row_per_page: Pass the number of rows that each page should have.
+    """
+
+    def __init__(self, List: list[list[InlineKeyboardButton]],
+                 Attach: list,
+                 Back: list[list[InlineKeyboardButton]] = None,
+                 Backward: list[list[InlineKeyboardButton]] = None,
+                 Forward: list[list[InlineKeyboardButton]] = None,
+                 Page: int = 1, row_per_page: int = 4):
+
+        self.__List = List
+        self.__Attach = Attach
+        self.__row_per_page = row_per_page
+        self.__current_page = Page
+        self.__Total_page = self.__Total_page()
+        self.__Back = Back if isinstance(Back, list) else ikb([("↩️", "Back")], Markup=False)[0]
+        self.__Backward = Backward if isinstance(Backward, list) else ikb([("⬅️", "Backward")], Markup=False)[0]
+        self.__Forward = Forward if isinstance(Forward, list) else ikb([("➡️", "Forward")], Markup=False)[0]
+
+    def __ikb_move_btns(self):
+        if self.__current_page == self.__Total_page and self.__Total_page == 1:
+            self.__Attach.extend([self.__Back])
+
+        elif self.__current_page == self.__Total_page and self.__Total_page > 1:
+            self.__Attach.extend([self.__Backward])
+
+        elif self.__current_page == 1 and self.__Total_page > self.__current_page:
+            self.__Attach.extend([self.__Back + self.__Forward])
+
+        elif self.__Total_page > self.__current_page > 1:
+            self.__Attach.extend([self.__Backward + self.__Backward])
+
+    def __create_page(self):
+        Start = (self.__current_page - 1) * self.__row_per_page
+        End = Start + self.__row_per_page
+        self.__Attach.extend(self.__List[Start:End])
+
+    def __Total_page(self):
+        Num = len(self.__List)
+        return (Num // self.__row_per_page) + (Num % self.__row_per_page > 0)
+
+    def Create(self):
+        self.__create_page()
+        self.__ikb_move_btns()
