@@ -105,6 +105,28 @@ class Client:
 
         return response
 
+    @patchable
+    async def ask_with_photo(
+        self,
+        photo,
+        caption,
+        identifier: tuple,
+        filters=None,
+        listener_type=ListenerTypes.MESSAGE,
+        timeout=None,
+        *args,
+        **kwargs
+    ):
+        request = await self.send_photo(identifier[0], photo, caption, *args, **kwargs)
+        response = await self.listen(
+            identifier, filters, listener_type, timeout
+        )
+        if response:
+            response.request = request
+
+        return response
+
+
     """
     needed for matching when message_id or
     user_id is null, and to take precedence
