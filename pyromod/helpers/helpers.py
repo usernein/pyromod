@@ -6,12 +6,11 @@ from pyrogram.types import (
     ForceReply,
 )
 
-
 button_types = ["callback_data", "url", "switch_inline_query", "switch_inline_query_current_chat", "callback_game"]
 
 
 def ikb(rows=list[tuple | str | dict] | list[list[tuple | str | dict]],
-        column: int = 2,
+        column: int = 0,
         Markup: bool = True) -> InlineKeyboardMarkup | list[list[InlineKeyboardButton]]:
     """Creates inline keyboard.
 
@@ -25,7 +24,7 @@ def ikb(rows=list[tuple | str | dict] | list[list[tuple | str | dict]],
 
     lines = []
     line = []
-    split = False if isinstance(rows[0], list) else True
+    split = False if isinstance(rows[0], list) and column == 0 else True
 
     for row in rows:
         if isinstance(row, list):
@@ -104,6 +103,9 @@ def kb(rows: list[str | dict] | list[list[str | dict]], column: int = 2, **kwarg
         you defined, you should pass like list[list[buttons], list[buttons]].
 
     :param column: Pass the number of columns that you want. **MAX** is 4.
+
+    :param kwargs: set ReplyKeyboardMarkup Args, is_persistent, resize_keyboard, one_time_keyboard, selective,
+        placeholder
     """
 
     lines = []
