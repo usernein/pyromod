@@ -36,7 +36,8 @@ def patch(obj):
     def wrapper(container):
         for name, func in filter(is_patchable, container.__dict__.items()):
             old = getattr(obj, name, None)
-            setattr(obj, "old" + name, old)
+            if old is not None: # Not adding 'old' to new func
+                setattr(obj, "old" + name, old)
             setattr(obj, name, func)
         return container
 
