@@ -17,7 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
-
+from contextlib import contextmanager
 
 class PyromodConfig:
     timeout_handler = None
@@ -31,6 +31,9 @@ class PyromodConfig:
 
 def patch(obj):
     def is_patchable(item):
+        # item = (name, value)
+        # item[0] = name
+        # item[1] = value
         return getattr(item[1], "patchable", False)
 
     def wrapper(container):
@@ -38,12 +41,25 @@ def patch(obj):
             old = getattr(obj, name, None)
             if old is not None: # Not adding 'old' to new func
                 setattr(obj, "old" + name, old)
+            
+            if func.is_property:
+                func = property(func)
+            elif func.is_static:
+                func = staticmethod(func)
+            elif func.is_context:
+                func = contextmanager(func)
+
             setattr(obj, name, func)
         return container
 
     return wrapper
 
 
-def patchable(func):
-    func.patchable = True
-    return func
+def patchable(is_property: bool = False, is_static: bool = False, is_context: bool = False):
+    def wrapper(func):
+        func.patchable = True
+        func.is_property = is_property
+        func.is_static = is_static
+        func.is_context = is_context
+        return func
+    return wrapper

@@ -43,12 +43,12 @@ class ListenerTypes(Enum):
 
 @patch(pyrogram.client.Client)
 class Client:
-    @patchable
+    @patchable()
     def __init__(self, *args, **kwargs):
         self.listeners = {listener_type: {} for listener_type in ListenerTypes}
         self.old__init__(*args, **kwargs)
 
-    @patchable
+    @patchable()
     async def listen(
         self,
         identifier: tuple,
@@ -86,7 +86,7 @@ class Client:
             elif PyromodConfig.throw_exceptions:
                 raise ListenerTimeout(timeout)
 
-    @patchable
+    @patchable()
     async def ask(
         self,
         text,
@@ -111,7 +111,7 @@ class Client:
     user_id is null, and to take precedence
     """
 
-    @patchable
+    @patchable()
     def match_listener(
         self,
         data: Optional[tuple] = None,
@@ -159,7 +159,7 @@ class Client:
                     return listener, identifier
             return None, None
 
-    @patchable
+    @patchable()
     def stop_listening(
         self,
         data: Optional[tuple] = None,
@@ -186,12 +186,12 @@ class Client:
 
 @patch(pyrogram.handlers.message_handler.MessageHandler)
 class MessageHandler:
-    @patchable
+    @patchable()
     def __init__(self, callback: Callable, filters=None):
         self.registered_handler = callback
         self.old__init__(self.resolve_future, filters)
 
-    @patchable
+    @patchable()
     async def check(self, client, message):
         if user := getattr(message, "from_user", None):
             user = user.id
@@ -228,7 +228,7 @@ class MessageHandler:
         # exists but its filters doesn't match
         return listener_does_match or handler_does_match
 
-    @patchable
+    @patchable()
     async def resolve_future(self, client, message, *args):
         listener_type = ListenerTypes.MESSAGE
         if user := getattr(message, "from_user", None):
@@ -261,12 +261,12 @@ class MessageHandler:
 
 @patch(pyrogram.handlers.callback_query_handler.CallbackQueryHandler)
 class CallbackQueryHandler:
-    @patchable
+    @patchable()
     def __init__(self, callback: Callable, filters=None):
         self.registered_handler = callback
         self.old__init__(self.resolve_future, filters)
 
-    @patchable
+    @patchable()
     async def check(self, client, query):
         chatID, mID = None, None
         if message := getattr(query, "message", None):
@@ -311,7 +311,7 @@ class CallbackQueryHandler:
         else:
             return True
 
-    @patchable
+    @patchable()
     async def resolve_future(self, client, query, *args):
         listener_type = ListenerTypes.CALLBACK_QUERY
         chatID, mID = None, None
@@ -331,7 +331,7 @@ class CallbackQueryHandler:
 
 @patch(pyrogram.types.messages_and_media.message.Message)
 class Message(pyrogram.types.messages_and_media.message.Message):
-    @patchable
+    @patchable()
     async def wait_for_click(
         self,
         from_user_id: Optional[int] = None,
@@ -350,15 +350,15 @@ class Message(pyrogram.types.messages_and_media.message.Message):
 
 @patch(pyrogram.types.user_and_chats.chat.Chat)
 class Chat(pyrogram.types.Chat):
-    @patchable
+    @patchable()
     def listen(self, *args, **kwargs):
         return self._client.listen((self.id, None, None), *args, **kwargs)
 
-    @patchable
+    @patchable()
     def ask(self, text, *args, **kwargs):
         return self._client.ask(text, (self.id, None, None), *args, **kwargs)
 
-    @patchable
+    @patchable()
     def stop_listening(self, *args, **kwargs):
         return self._client.stop_listening(
             *args, identifier_pattern=(self.id, None, None), **kwargs
@@ -367,17 +367,17 @@ class Chat(pyrogram.types.Chat):
 
 @patch(pyrogram.types.user_and_chats.user.User)
 class User(pyrogram.types.User):
-    @patchable
+    @patchable()
     def listen(self, *args, **kwargs):
         return self._client.listen((None, self.id, None), *args, **kwargs)
 
-    @patchable
+    @patchable()
     def ask(self, text, *args, **kwargs):
         return self._client.ask(
             text, (self.id, self.id, None), *args, **kwargs
         )
 
-    @patchable
+    @patchable()
     def stop_listening(self, *args, **kwargs):
         return self._client.stop_listening(
             *args, identifier_pattern=(None, self.id, None), **kwargs
