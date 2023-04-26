@@ -17,7 +17,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
-from contextlib import contextmanager
+from inspect import iscoroutinefunction
+from contextlib import contextmanager, asynccontextmanager
 
 class PyromodConfig:
     timeout_handler = None
@@ -47,7 +48,10 @@ def patch(obj):
             elif func.is_static:
                 func = staticmethod(func)
             elif func.is_context:
-                func = contextmanager(func)
+                if iscoroutinefunction(func.__call__):
+                    func = asynccontextmanager(func)
+                else:
+                    func = contextmanager(func)
 
             setattr(obj, name, func)
         return container
@@ -56,7 +60,7 @@ def patch(obj):
 
 
 def patchable(is_property: bool = False, is_static: bool = False, is_context: bool = False):
-    def wrapper(func):
+    def decorator(func):
         func.patchable = True
         func.is_property = is_property
         func.is_static = is_static
