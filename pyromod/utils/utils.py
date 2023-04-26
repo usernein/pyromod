@@ -60,10 +60,9 @@ def patch(obj):
 
 
 def patchable(is_property: bool = False, is_static: bool = False, is_context: bool = False):
-    def decorator(func):
+    def wrapper(func):
         func.patchable = True
         func.is_property = is_property
         func.is_static = is_static
         func.is_context = is_context
-        return func
     return wrapper
