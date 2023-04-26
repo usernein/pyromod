@@ -68,18 +68,22 @@ def patchable(is_property: bool = False, is_static: bool = False, is_context: bo
     
         @patchable(is_property=True)
         def my_property():
-            pass
+            ...
 
         @patchable(is_static=True)
         def my_static_method():
-            pass
+            ...
 
         @patchable(is_context=True)
         def my_context_manager():
-            pass
+            ...
        
         @patchable(is_property=False, is_static=False, is_context=False)
         def my_function():
+            ...
+        
+        @patchable()
+        def default_usage():
             ...
 
     Parameters:
