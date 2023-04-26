@@ -65,4 +65,5 @@ def patchable(is_property: bool = False, is_static: bool = False, is_context: bo
         func.is_property = is_property
         func.is_static = is_static
         func.is_context = is_context
+        return func
     return wrapper
