@@ -17,6 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
+from typing import Callable
 from inspect import iscoroutinefunction
 from contextlib import contextmanager, asynccontextmanager
 
@@ -59,8 +60,37 @@ def patch(obj):
     return wrapper
 
 
-def patchable(is_property: bool = False, is_static: bool = False, is_context: bool = False):
-    def wrapper(func):
+def patchable(is_property: bool = False, is_static: bool = False, is_context: bool = False) -> Callable:
+    """
+    A decorator that marks a function as patchable.
+
+    Usage:
+    
+        @patchable(is_property=True)
+        def my_property():
+            pass
+
+        @patchable(is_static=True)
+        def my_static_method():
+            pass
+
+        @patchable(is_context=True)
+        def my_context_manager():
+            pass
+       
+        @patchable(is_property=False, is_static=False, is_context=False)
+        def my_function():
+            ...
+
+    Parameters:
+        - is_property (bool): whether the function is a property. Default is False.
+        - is_static (bool): whether the function is a static method. Default is False.
+        - is_context (bool): whether the function is a context manager. Default is False.
+
+    Returns:
+        - A callable object that marks the function as patchable.
+    """
+    def wrapper(func: Callable) -> Callable:
         func.patchable = True
         func.is_property = is_property
         func.is_static = is_static
