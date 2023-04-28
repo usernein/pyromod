@@ -49,10 +49,12 @@ def patch(obj):
             
             # Worse Code
             tempConf = {i: getattr(func, i, False) for i in ["is_property", "is_static", "is_context"]}
+            class __M:
+                ...
             
-            mods = import_module(func.__module__)
-            async_to_sync(mods, name)
-            func = getattr(mods, name)
+            setattr(__M, name, func)
+            async_to_sync(__M, name)
+            func = getattr(__M, name)
             
             for tKey, tValue in tempConf.items():
                 setattr(func, tKey, tValue)
