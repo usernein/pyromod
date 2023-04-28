@@ -46,9 +46,16 @@ def patch(obj):
             old = getattr(obj, name, None)
             if old is not None: # Not adding 'old' to new func
                 setattr(obj, "old" + name, old)
+            
+            # Worse Code
+            tempConf = {i: getattr(func, i, False) for i in ["is_property", "is_static", "is_context"]}
+            
             mods = import_module(func.__module__)
             async_to_sync(mods, name)
             func = getattr(mods, name)
+            
+            for tKey, tValue in tempConf.items():
+                setattr(func, tKey, tValue)
 
             if func.is_property:
                 func = property(func)
