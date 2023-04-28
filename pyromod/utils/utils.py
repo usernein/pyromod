@@ -18,8 +18,11 @@ You should have received a copy of the GNU General Public License
 along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
 from typing import Callable
+from importlib import import_module
 from inspect import iscoroutinefunction
 from contextlib import contextmanager, asynccontextmanager
+
+from pyrogram.sync import async_to_sync
 
 class PyromodConfig:
     timeout_handler = None
@@ -43,7 +46,10 @@ def patch(obj):
             old = getattr(obj, name, None)
             if old is not None: # Not adding 'old' to new func
                 setattr(obj, "old" + name, old)
-            
+            mods = import_module(func.__module__)
+            async_to_sync(mods, name)
+            func = getattr(mods, name)
+
             if func.is_property:
                 func = property(func)
             elif func.is_static:
