@@ -18,11 +18,13 @@ You should have received a copy of the GNU General Public License
 along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
 from typing import Callable
-from importlib import import_module
+from logging import getLogger
 from inspect import iscoroutinefunction
 from contextlib import contextmanager, asynccontextmanager
 
 from pyrogram.sync import async_to_sync
+
+logger = getLogger(__name__)
 
 class PyromodConfig:
     timeout_handler = None
@@ -65,7 +67,8 @@ def patch(obj):
                     func = asynccontextmanager(func)
                 else:
                     func = contextmanager(func)
-
+            
+            logger.info(f"Patch Attribute To {obj.__class__.__name__} From {container.__class__.__name__} : {name}")
             setattr(obj, name, func)
         return container
 
