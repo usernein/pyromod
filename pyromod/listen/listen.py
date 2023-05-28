@@ -192,10 +192,17 @@ class MessageHandler:
 
     @patchable
     async def check(self, client, message):
-        listener = client.match_listener(
-            (message.chat.id, message.from_user.id, message.id),
-            ListenerTypes.MESSAGE,
-        )[0]
+        try:
+            if message.from_user is None:
+                _id = message.sender_chat.id
+            else:
+                _id = message.from_user.id
+            listener = client.match_listener(
+                (message.chat.id, _id, message.id),
+                ListenerTypes.MESSAGE,
+            )[0]
+        except AttributeError:
+            listener = None
 
         listener_does_match = handler_does_match = False
 
