@@ -20,6 +20,7 @@ along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
 import pyrogram
+import logging
 
 from inspect import iscoroutinefunction
 from typing import Optional, Callable, Union
@@ -27,6 +28,7 @@ from enum import Enum
 
 from ..utils import patch, patchable, PyromodConfig
 
+logger = logging.getLogger(__name__)
 
 class ListenerStopped(Exception):
     pass
@@ -195,10 +197,14 @@ class MessageHandler:
     async def check(self, client, message):
         if user := getattr(message, "from_user", None):
             user = user.id
-        listener = client.match_listener(
-            (message.chat.id, user, message.id),
-            ListenerTypes.MESSAGE,
-        )[0]
+        try:
+            listener = client.match_listener(
+                (message.chat.id, user, message.id),
+                ListenerTypes.MESSAGE,
+            )[0]
+        except AttributeError as err:
+            logger.warning(f"Get : {err}\n\n{message}")
+            raise err
 
         listener_does_match = handler_does_match = False
 
@@ -271,10 +277,14 @@ class CallbackQueryHandler:
         chatID, mID = None, None
         if message := getattr(query, "message", None):
             chatID, mID = message.chat.id, message.id
-        listener = client.match_listener(
-            (chatID, query.from_user.id, mID),
-            ListenerTypes.CALLBACK_QUERY,
-        )[0]
+        try:
+            listener = client.match_listener(
+                (chatID, query.from_user.id, mID),
+                ListenerTypes.CALLBACK_QUERY,
+            )[0]
+        except AttributeError as err:
+            logger.warning(f"Get : {err}\n\n{message}")
+            raise err
 
         # managing unallowed user clicks
         if PyromodConfig.unallowed_click_alert:
