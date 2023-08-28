@@ -192,10 +192,16 @@ class MessageHandler:
 
     @patchable
     async def check(self, client, message):
+        # patch
+        if not message.from_user:
+            message_from_user_id = None
+        else:
+            message_from_user_id = message.from_user.id
         listener = client.match_listener(
-            (message.chat.id, message.from_user.id, message.id),
+            (message.chat.id, message_from_user_id, message.id),
             ListenerTypes.MESSAGE,
         )[0]
+        #################################
 
         listener_does_match = handler_does_match = False
 
@@ -217,8 +223,12 @@ class MessageHandler:
     @patchable
     async def resolve_future(self, client, message, *args):
         listener_type = ListenerTypes.MESSAGE
+        if not message.from_user:
+            message_from_user_id = None
+        else:
+            message_from_user_id = message.from_user.id
         listener, identifier = client.match_listener(
-            (message.chat.id, message.from_user.id, message.id),
+            (message.chat.id, message_from_user_id, message.id),
             listener_type,
         )
         listener_does_match = False
