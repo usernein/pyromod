@@ -11,6 +11,7 @@ line-length = 79
 
 [tool.poetry.dependencies]
 python = "^3.8"
+pyrogram = ">=1.0"
 
 [build-system]
 requires = ["poetry-core"]
