@@ -207,14 +207,14 @@ class MessageHandler:
             raise err
 
         listener_does_match = handler_does_match = False
-
+        loop = asyncio.get_event_loop()
         if listener:
             filters = listener["filters"]
             if callable(filters):
                 if iscoroutinefunction(filters.__call__):
                     listener_does_match = await filters(client, message)
                 else:
-                    listener_does_match = await client.loop.run_in_executor(
+                    listener_does_match = await loop.run_in_executor(
                         None, filters, client, message
                     )
             else:
@@ -224,7 +224,7 @@ class MessageHandler:
             if iscoroutinefunction(self.filters.__call__):
                 handler_does_match = await self.filters(client, message)
             else:
-                handler_does_match = await client.loop.run_in_executor(
+                handler_does_match = await loop.run_in_executor(
                     None, self.filters, client, message
                 )
         else:
@@ -250,7 +250,8 @@ class MessageHandler:
                 if iscoroutinefunction(filters.__call__):
                     listener_does_match = await filters(client, message)
                 else:
-                    listener_does_match = await client.loop.run_in_executor(
+                    loop = asyncio.get_event_loop()
+                    listener_does_match = await loop.run_in_executor(
                         None, filters, client, message
                     )
             else:
@@ -315,7 +316,8 @@ class CallbackQueryHandler:
             if iscoroutinefunction(filters.__call__):
                 return await filters(client, query)
             else:
-                return await client.loop.run_in_executor(
+                loop = asyncio.get_event_loop()
+                return await loop.run_in_executor(
                     None, filters, client, query
                 )
         else:
