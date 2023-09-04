@@ -11,18 +11,6 @@ files = [
     {file = "pyaes-1.6.1.tar.gz", hash = "sha256:02c1b1405c38d3c370b085fb952dd8bea3fadcee6411ad99f312cc129c536d8f"},
 ]
 
-[[package]]
-name = "pyrogram"
-version = "2.0.92"
-description = "Elegant, modern and asynchronous Telegram MTProto API framework in Python for users and bots"
-category = "main"
-optional = false
-python-versions = "~=3.7"
-files = [
-    {file = "Pyrogram-2.0.92-py3-none-any.whl", hash = "sha256:1aa038d1da0a2a96452c9c2cae2592074ab83dcd95a1b996f49e583fd202fcab"},
-    {file = "Pyrogram-2.0.92.tar.gz", hash = "sha256:863dd2de0b7d5cc26d0df65e545c309afcabfa2642c41c4670d3b28d580b1f4b"},
-]
-
 [package.dependencies]
 pyaes = "1.6.1"
 pysocks = "1.7.1"
