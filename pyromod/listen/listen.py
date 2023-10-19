@@ -54,12 +54,15 @@ class Client:
     @patchable()
     async def listen(
         self,
-        identifier: tuple,
         filters=None,
         listener_type=ListenerTypes.MESSAGE,
         timeout=None,
         unallowed_click_alert=True,
+        chat_id=None,
+        user_id=None,
+        message_id=None,
     ):
+        identifier = (chat_id, user_id, message_id)
         if type(listener_type) != ListenerTypes:
             raise TypeError(
                 "Parameter listener_type should be a"
@@ -93,17 +96,19 @@ class Client:
     async def ask(
         self,
         text,
-        identifier: tuple,
         filters=None,
         listener_type=ListenerTypes.MESSAGE,
         timeout=None,
+        chat_id=None,
+        user_id=None,
+        message_id=None,
         *args,
-        **kwargs,
+        **kwargs
     ):
         if text.strip() != "":
-            sent_message = await self.send_message(identifier[0], text, *args, **kwargs)
+            sent_message = await self.send_message(chat_id, text, *args, **kwargs)
         response = await self.listen(
-            identifier, filters, listener_type, timeout
+            filters, listener_type, timeout, chat_id=chat_id, user_id=user_id, message_id=message_id
         )
         if response:
             response.sent_message = sent_message
@@ -122,6 +127,18 @@ class Client:
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         identifier_pattern: Optional[tuple] = None,
     ) -> tuple:
+        actual = {
+            "chat_id": data[0] if data and len(data) else None,
+            "user_id": data[1] if data and len(data) > 1 else None,
+            "message_id": data[2] if data and len(data) > 2 else None,
+        }
+
+        listen = {
+            "chat_id": identifier_pattern[0] if identifier_pattern and len(identifier_pattern) else None,
+            "user_id": identifier_pattern[1] if identifier_pattern and len(identifier_pattern) > 1 else None,
+            "message_id": identifier_pattern[2] if identifier_pattern and len(identifier_pattern) > 2 else None,
+        }
+
         if data:
             listeners = self.listeners[listener_type]
             # case with 3 args on identifier
@@ -133,17 +150,17 @@ class Client:
             # cases with 2 args on identifier
             # (None, user, message) does not make
             # sense since the message_id is not unique
-            elif (data[0], data[1], None) in listeners:
-                matched = (data[0], data[1], None)
-            elif (data[0], None, data[2]) in listeners:
-                matched = (data[0], None, data[2])
+            elif (actual["chat_id"], actual["user_id"], None) in listeners:
+                matched = (actual["chat_id"], actual["user_id"], None)
+            elif (actual["chat_id"], None, actual["message_id"]) in listeners:
+                matched = (actual["chat_id"], None, actual["message_id"])
 
             # cases with 1 arg on identifier
             # (None, None, message) does not make sense as well
-            elif (data[0], None, None) in listeners:
-                matched = (data[0], None, None)
-            elif (None, data[1], None) in listeners:
-                matched = (None, data[1], None)
+            elif (actual["chat_id"], None, None) in listeners:
+                matched = (actual["chat_id"], None, None)
+            elif (None, actual["user_id"], None) in listeners:
+                matched = (None, actual["user_id"], None)
             else:
                 return None, None
 
@@ -239,20 +256,20 @@ class MessageHandler:
     @patchable()
     async def resolve_future(self, client, message, *args):
         listener_type = ListenerTypes.MESSAGE
-        
+
         if not message.from_user:
             message_from_user_id = None
         else:
             message_from_user_id = message.from_user.id
-            
-        
+
+
         data = (
             message.chat.id,
             message_from_user_id,
             getattr(message, "id", getattr(message, "message_id", None)),
         )
-            
-            
+
+
         listener, identifier = client.match_listener(
             data,
             listener_type,
@@ -375,6 +392,9 @@ class Message(pyrogram.types.messages_and_media.message.Message):
             timeout=timeout,
             filters=filters,
             unallowed_click_alert=alert,
+            chat_id=self.chat.id,
+            user_id=from_user_id,
+            message_id=self.id,
         )
 
 
@@ -382,16 +402,16 @@ class Message(pyrogram.types.messages_and_media.message.Message):
 class Chat(pyrogram.types.Chat):
     @patchable()
     def listen(self, *args, **kwargs):
-        return self._client.listen((self.id, None, None), *args, **kwargs)
+        return self._client.listen(*args, chat_id=self.id, **kwargs)
 
     @patchable()
     def ask(self, text, *args, **kwargs):
-        return self._client.ask(text, (self.id, None, None), *args, **kwargs)
+        return self._client.ask(text, *args, chat_id=self.id, **kwargs)
 
     @patchable()
     def stop_listening(self, *args, **kwargs):
         return self._client.stop_listening(
-            *args, identifier_pattern=(self.id, None, None), **kwargs
+            *args, chat_id=self.id, **kwargs
         )
 
 
@@ -399,16 +419,16 @@ class Chat(pyrogram.types.Chat):
 class User(pyrogram.types.User):
     @patchable()
     def listen(self, *args, **kwargs):
-        return self._client.listen((None, self.id, None), *args, **kwargs)
+        return self._client.listen(user_id=self.id, *args, **kwargs)
 
     @patchable()
     def ask(self, text, *args, **kwargs):
         return self._client.ask(
-            text, (self.id, self.id, None), *args, **kwargs
+            text, *args, chat_id=self.id, user_id=self.id, **kwargs
         )
 
     @patchable()
     def stop_listening(self, *args, **kwargs):
         return self._client.stop_listening(
-            *args, identifier_pattern=(None, self.id, None), **kwargs
+            *args, user_id=self.id, **kwargs
         )
