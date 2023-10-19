@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyromod"
-version = "2.0.0"
+version = "3.0.0"
 description = "A monkeypatcher add-on for Pyrogram that does conversation handling"
 authors = ["usernein"]
 license = "LGPLv3+"
