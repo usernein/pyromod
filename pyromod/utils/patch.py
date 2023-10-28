@@ -1,5 +1,5 @@
 """
-pyromod - A monkeypatched add-on for Pyrogram
+pyromod - A monkeypatcher add-on for Pyrogram
 Copyright (C) 2020 Cezar H. <https://github.com/usernein>
 
 This file is part of pyromod.
@@ -17,12 +17,26 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
+from typing import Type, T
 
-from .config import config
-from .helpers import ikb, bki, ntb, btn, kb, kbtn, array_chunk, force_reply
-from .listen import Client, MessageHandler, CallbackQueryHandler, Message, Chat, User
-from .nav import Pagination
-from .utils import patch, patchable
 
-__all__ = ["config", "Client", "MessageHandler", "Message", "Chat", "User", "CallbackQueryHandler", "patch",
-           "patchable", "ikb", "bki", "ntb", "btn", "kb", "kbtn", "array_chunk", "force_reply", "Pagination"]
+def patch(target_class):
+    def is_patchable(item):
+        func = item[1]
+        return getattr(func, "patchable", False)
+
+    def wrapper(base_class: Type[T]) -> T:
+        for name, func in filter(is_patchable, base_class.__dict__.items()):
+            old_value = getattr(target_class, name, None)
+
+            setattr(target_class, "old" + name, old_value)
+            setattr(target_class, name, func)
+            
+        return base_class
+
+    return wrapper
+
+
+def patchable(func: Type[T]) -> T:
+    func.patchable = True
+    return func
