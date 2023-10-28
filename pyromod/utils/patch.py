@@ -25,12 +25,13 @@ from contextlib import contextmanager, asynccontextmanager
 from pyrogram.sync import async_to_sync
 
 logger = getLogger(__name__)
+from typing import Type, T
 
 
-def patch_into(obj):
+def patch(obj):
     def is_patchable(item):
         func = item[1]
-        return getattr(func, "should_patch", False)
+        return getattr(func, "patchable", False)
 
     def wrapper(container):
         for name, func in filter(is_patchable, container.__dict__.items()):
@@ -64,7 +65,7 @@ def patch_into(obj):
     return wrapper
 
 
-def should_patch(is_property: bool = False, is_static: bool = False, is_context: bool = False) -> Callable:
+def patchable(is_property: bool = False, is_static: bool = False, is_context: bool = False) -> Callable:
     """
     A decorator that marks a function as patchable.
 

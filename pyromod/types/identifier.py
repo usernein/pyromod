@@ -20,12 +20,3 @@ class Identifier:
             if self_value is not None and other_value != self_value:
                 return False
         return True
-
-    def count_populated(self):
-        non_null_count = 0
-
-        for attr in self.__annotations__:
-            if getattr(self, attr) is not None:
-                non_null_count += 1
-
-        return non_null_count
