@@ -22,15 +22,15 @@ class Client(pyrogram.client.Client):
 
     @should_patch
     async def listen(
-        self,
-        filters: Optional[Filter] = None,
-        listener_type: ListenerTypes = ListenerTypes.MESSAGE,
-        timeout: Optional[int] = None,
-        unallowed_click_alert: bool = True,
-        chat_id: int = None,
-        user_id: int = None,
-        message_id: int = None,
-        inline_message_id: str = None,
+            self,
+            filters: Optional[Filter] = None,
+            listener_type: ListenerTypes = ListenerTypes.MESSAGE,
+            timeout: Optional[int] = None,
+            unallowed_click_alert: bool = True,
+            chat_id: int = None,
+            user_id: int = None,
+            message_id: int = None,
+            inline_message_id: str = None,
     ):
         pattern = Identifier(
             from_user_id=user_id,
@@ -71,18 +71,18 @@ class Client(pyrogram.client.Client):
 
     @should_patch
     async def ask(
-        self,
-        chat_id: int,
-        text: str,
-        filters: Optional[Filter] = None,
-        listener_type: ListenerTypes = ListenerTypes.MESSAGE,
-        timeout: Optional[int] = None,
-        unallowed_click_alert: bool = True,
-        user_id: int = None,
-        message_id: int = None,
-        inline_message_id: str = None,
-        *args,
-        **kwargs,
+            self,
+            chat_id: int,
+            text: str,
+            filters: Optional[Filter] = None,
+            listener_type: ListenerTypes = ListenerTypes.MESSAGE,
+            timeout: Optional[int] = None,
+            unallowed_click_alert: bool = True,
+            user_id: int = None,
+            message_id: int = None,
+            inline_message_id: str = None,
+            *args,
+            **kwargs,
     ):
         request = await self.send_message(chat_id, text, *args, **kwargs)
         response = await self.listen(
@@ -101,8 +101,8 @@ class Client(pyrogram.client.Client):
         return response
 
     @should_patch
-    def get_single_listener(
-        self, pattern: Identifier, listener_type: ListenerTypes
+    def get_matching_listener(
+            self, pattern: Identifier, listener_type: ListenerTypes
     ) -> Optional[Listener]:
         matching = []
         for listener in self.listeners[listener_type]:
@@ -120,8 +120,8 @@ class Client(pyrogram.client.Client):
         self.listeners[listener.listener_type].remove(listener)
 
     @should_patch
-    def get_many_listeners(
-        self, pattern: Identifier, listener_type: ListenerTypes
+    def get_many_matching_listeners(
+            self, pattern: Identifier, listener_type: ListenerTypes
     ) -> list[Listener]:
         listeners = []
         for listener in self.listeners[listener_type]:
@@ -131,12 +131,12 @@ class Client(pyrogram.client.Client):
 
     @should_patch
     def stop_listening(
-        self,
-        listener_type: ListenerTypes = ListenerTypes.MESSAGE,
-        chat_id: int = None,
-        user_id: int = None,
-        message_id: int = None,
-        inline_message_id: str = None,
+            self,
+            listener_type: ListenerTypes = ListenerTypes.MESSAGE,
+            chat_id: int = None,
+            user_id: int = None,
+            message_id: int = None,
+            inline_message_id: str = None,
     ):
         pattern = Identifier(
             from_user_id=user_id,
@@ -144,7 +144,7 @@ class Client(pyrogram.client.Client):
             message_id=message_id,
             inline_message_id=inline_message_id,
         )
-        listeners = self.get_many_listeners(pattern, listener_type)
+        listeners = self.get_many_matching_listeners(pattern, listener_type)
 
         for listener in listeners:
             self.remove_listener(listener)

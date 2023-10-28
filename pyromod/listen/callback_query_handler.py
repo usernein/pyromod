@@ -37,11 +37,11 @@ class CallbackQueryHandler(
 
     @should_patch
     async def check_if_has_matching_listener(
-        self, client: Client, query: CallbackQuery
+            self, client: Client, query: CallbackQuery
     ) -> tuple[bool, Listener]:
         data = self.compose_data_identifier(query)
 
-        listener = client.get_single_listener(data, ListenerTypes.MESSAGE)
+        listener = client.get_matching_listener(data, ListenerTypes.MESSAGE)
 
         listener_does_match = False
 

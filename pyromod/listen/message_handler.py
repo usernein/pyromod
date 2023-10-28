@@ -28,7 +28,7 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
             message_id=message.id, chat_id=message.chat.id, from_user_id=from_user_id
         )
 
-        listener = client.get_single_listener(data, ListenerTypes.MESSAGE)
+        listener = client.get_matching_listener(data, ListenerTypes.MESSAGE)
 
         listener_does_match = False
 
