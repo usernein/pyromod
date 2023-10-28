@@ -107,10 +107,16 @@ class Client(pyrogram.client.Client):
     def get_matching_listener(
             self, pattern: Identifier, listener_type: ListenerTypes
     ) -> Optional[Listener]:
+        matching = []
         for listener in self.listeners[listener_type]:
             if listener.identifier.matches(pattern):
-                return listener
-        return None
+                matching.append(listener)
+
+        # in case of multiple matching listeners, the most specific should be returned
+        def count_populated_attributes(listener_item: Listener):
+            return listener_item.identifier.count_populated()
+
+        return max(matching, key=count_populated_attributes, default=None)
 
     @should_patch
     def remove_listener(self, listener: Listener):
