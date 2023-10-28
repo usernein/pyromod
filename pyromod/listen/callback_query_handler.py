@@ -59,7 +59,7 @@ class CallbackQueryHandler(
             client, query
         )
 
-        handler_does_match = (
+        original_handler_does_match = (
             await self.filters(client, query) if callable(self.filters) else True
         )
 
@@ -67,16 +67,20 @@ class CallbackQueryHandler(
 
         if config.unallowed_click_alert:
             # matches with the current query but from any user
-            permissive_identifier = Identifier(
+            non_user_specific_identifier = Identifier(
                 chat_id=data.chat_id,
                 message_id=data.message_id,
                 inline_message_id=data.inline_message_id,
                 from_user_id=None,
             )
 
-            matches = permissive_identifier.matches(data)
+            non_user_specific_does_match = non_user_specific_identifier.matches(data)
 
-            if (matches and not listener_does_match) and listener.unallowed_click_alert:
+            if (
+                    listener
+                    and (non_user_specific_does_match and not listener_does_match)
+                    and listener.unallowed_click_alert
+            ):
                 alert = (
                     listener.unallowed_click_alert
                     if isinstance(listener.unallowed_click_alert, str)
@@ -87,7 +91,7 @@ class CallbackQueryHandler(
 
         # let handler get the chance to handle if listener
         # exists but its filters doesn't match
-        return listener_does_match or handler_does_match
+        return listener_does_match or original_handler_does_match
 
     @should_patch
     async def resolve_future(self, client: Client, query: CallbackQuery, *args):
