@@ -7,20 +7,20 @@ from pyrogram.filters import Filter
 from ..config import config
 from ..exceptions import ListenerTimeout, ListenerStopped
 from ..types import ListenerTypes, Identifier, Listener
-from ..utils import patchable, patch
+from ..utils import should_patch, patch_into
 
 
-@patch(pyrogram.client.Client)
+@patch_into(pyrogram.client.Client)
 class Client(pyrogram.client.Client):
     listeners: dict[ListenerTypes, list[Listener]]
     old__init__: Callable
 
-    @patchable
+    @should_patch
     def __init__(self, *args, **kwargs):
         self.listeners = {listener_type: [] for listener_type in ListenerTypes}
         self.old__init__(*args, **kwargs)
 
-    @patchable
+    @should_patch
     async def listen(
             self,
             filters: Optional[Filter] = None,
@@ -59,7 +59,7 @@ class Client(pyrogram.client.Client):
             elif config.throw_exceptions:
                 raise ListenerTimeout(timeout)
 
-    @patchable
+    @should_patch
     async def ask(
             self,
             chat_id: int,
@@ -90,18 +90,18 @@ class Client(pyrogram.client.Client):
 
         return response
 
-    @patchable
+    @should_patch
     def get_single_listener(self, pattern: Identifier, listener_type: ListenerTypes) -> Optional[Listener]:
         for listener in self.listeners[listener_type]:
             if listener.identifier.matches(pattern):
                 return listener
         return None
 
-    @patchable
+    @should_patch
     def remove_listener(self, listener: Listener):
         self.listeners[listener.listener_type].remove(listener)
 
-    @patchable
+    @should_patch
     def get_many_listeners(self, pattern: Identifier, listener_type: ListenerTypes) -> list[Listener]:
         listeners = []
         for listener in self.listeners[listener_type]:
@@ -109,7 +109,7 @@ class Client(pyrogram.client.Client):
                 listeners.append(listener)
         return listeners
 
-    @patchable
+    @should_patch
     def stop_listening(
             self,
             listener_type: ListenerTypes = ListenerTypes.MESSAGE,

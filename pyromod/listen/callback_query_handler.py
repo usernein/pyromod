@@ -7,19 +7,19 @@ from pyrogram.types import CallbackQuery
 from .client import Client
 from ..config import config
 from ..types import ListenerTypes, Identifier, Listener
-from ..utils import patch, patchable
+from ..utils import patch_into, should_patch
 
 
-@patch(pyrogram.handlers.callback_query_handler.CallbackQueryHandler)
+@patch_into(pyrogram.handlers.callback_query_handler.CallbackQueryHandler)
 class CallbackQueryHandler(pyrogram.handlers.callback_query_handler.CallbackQueryHandler):
     old__init__: Callable
 
-    @patchable
+    @should_patch
     def __init__(self, callback: Callable, filters: Filter = None):
         self.original_callback = callback
         self.old__init__(self.resolve_future, filters)
 
-    @patchable
+    @should_patch
     def compose_data_identifier(self, query: CallbackQuery):
         from_user = query.from_user
         message_id = query.message.id if query.message else None
@@ -29,7 +29,7 @@ class CallbackQueryHandler(pyrogram.handlers.callback_query_handler.CallbackQuer
         return Identifier(message_id=message_id, chat_id=chat_id, from_user_id=from_user_id,
                           inline_message_id=query.inline_message_id)
 
-    @patchable
+    @should_patch
     async def check_if_has_matching_listener(self, client: Client, query: CallbackQuery) -> tuple[bool, Listener]:
         data = self.compose_data_identifier(query)
 
@@ -45,7 +45,7 @@ class CallbackQueryHandler(pyrogram.handlers.callback_query_handler.CallbackQuer
 
         return listener_does_match, listener
 
-    @patchable
+    @should_patch
     async def check(self, client: Client, query: CallbackQuery):
         listener_does_match, listener = await self.check_if_has_matching_listener(client, query)
 
@@ -81,7 +81,7 @@ class CallbackQueryHandler(pyrogram.handlers.callback_query_handler.CallbackQuer
         # exists but its filters doesn't match
         return listener_does_match or handler_does_match
 
-    @patchable
+    @should_patch
     async def resolve_future(self, client: Client, query: CallbackQuery, *args):
         listener_does_match, listener = await self.check_if_has_matching_listener(client, query)
 

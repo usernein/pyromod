@@ -25,19 +25,18 @@ from contextlib import contextmanager, asynccontextmanager
 from pyrogram.sync import async_to_sync
 
 logger = getLogger(__name__)
-from typing import Type, T
 
 
-def patch(obj):
+def patch(target_class):
     def is_patchable(item):
         func = item[1]
-        return getattr(func, "patchable", False)
+        return getattr(func, "should_patch", False)
 
     def wrapper(container):
         for name, func in filter(is_patchable, container.__dict__.items()):
-            old = getattr(obj, name, None)
+            old = getattr(target_class, name, None)
             if old is not None: # Not adding 'old' to new func
-                setattr(obj, "old" + name, old)
+                setattr(target_class, "old" + name, old)
 
             # Worse Code
             tempConf = {i: getattr(func, i, False) for i in ["is_property", "is_static", "is_context"]}
@@ -58,14 +57,14 @@ def patch(obj):
                 else:
                     func = contextmanager(func)
 
-            logger.info(f"Patch Attribute To {obj.__name__} From {container.__name__} : {name}")
-            setattr(obj, name, func)
+            logger.info(f"Patch Attribute To {target_class.__name__} From {container.__name__} : {name}")
+            setattr(target_class, name, func)
         return container
 
     return wrapper
 
 
-def patchable(is_property: bool = False, is_static: bool = False, is_context: bool = False) -> Callable:
+def should_patch(is_property: bool = False, is_static: bool = False, is_context: bool = False) -> Callable:
     """
     A decorator that marks a function as patchable.
 
@@ -100,7 +99,7 @@ def patchable(is_property: bool = False, is_static: bool = False, is_context: bo
         - A callable object that marks the function as patchable.
     """
     def wrapper(func: Callable) -> Callable:
-        func.patchable = True
+        func.should_patch = True
         func.is_property = is_property
         func.is_static = is_static
         func.is_context = is_context
