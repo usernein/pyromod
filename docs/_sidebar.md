@@ -1,0 +1,30 @@
+<!-- docs/_sidebar.md -->
+
+- **Home**
+    - [Introduction](/#pyromod)
+    - [Key features](/#key-features)
+- **Get Started**
+    - [Installation](/get-started/installation.md)
+    - [Initializing pyromod](/get-started/initialization.md)
+    - [Configuration](/get-started/configuration.md)
+    - [Examples](/get-started/examples.md)
+- **API Reference**
+    - [pyromod](/pyromod/index)
+        - [pyromod.config](/pyromod/config/index)
+        - pyromod.listen
+            - [Client](/pyromod/listen/client)
+            - [Message](/pyromod/listen/message)
+            - [User](/pyromod/listen/user)
+            - [Chat](/pyromod/listen/chat)
+        - pyromod.exceptions
+            - [ListenerTimeout](/pyromod/exceptions/listener-timeout)
+            - [ListenerStopped](/pyromod/exceptions/listener-stopped)
+        - [pyromod.helpers](/pyromod/helpers/index)
+        - pyromod.types
+            - [Identifier](/pyromod/types/identifier)
+            - [ListenerTypes](/pyromod/types/listener-types)
+            - [Listener](/pyromod/types/listener)
+        - pyromod.utils
+            - [pyromod.utils.patch](/pyromod/utils/patch)
+        - pyromod.nav
+            - [Pagination](/pyromod/nav/pagination)
