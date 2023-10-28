@@ -23,4 +23,4 @@ config.timeout_handler = my_custom_timeout_handler
 
 # Disable raising exceptions for listener events
 config.throw_exceptions = False
-``
+```
