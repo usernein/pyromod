@@ -11,7 +11,9 @@ from ..utils import patch_into, should_patch
 
 
 @patch_into(pyrogram.handlers.callback_query_handler.CallbackQueryHandler)
-class CallbackQueryHandler(pyrogram.handlers.callback_query_handler.CallbackQueryHandler):
+class CallbackQueryHandler(
+    pyrogram.handlers.callback_query_handler.CallbackQueryHandler
+):
     old__init__: Callable
 
     @should_patch
@@ -26,11 +28,17 @@ class CallbackQueryHandler(pyrogram.handlers.callback_query_handler.CallbackQuer
         chat_id = query.message.chat.id if query.message else None
         from_user_id = from_user.id if from_user else None
 
-        return Identifier(message_id=message_id, chat_id=chat_id, from_user_id=from_user_id,
-                          inline_message_id=query.inline_message_id)
+        return Identifier(
+            message_id=message_id,
+            chat_id=chat_id,
+            from_user_id=from_user_id,
+            inline_message_id=query.inline_message_id,
+        )
 
     @should_patch
-    async def check_if_has_matching_listener(self, client: Client, query: CallbackQuery) -> tuple[bool, Listener]:
+    async def check_if_has_matching_listener(
+        self, client: Client, query: CallbackQuery
+    ) -> tuple[bool, Listener]:
         data = self.compose_data_identifier(query)
 
         listener = client.get_single_listener(data, ListenerTypes.MESSAGE)
@@ -47,12 +55,12 @@ class CallbackQueryHandler(pyrogram.handlers.callback_query_handler.CallbackQuer
 
     @should_patch
     async def check(self, client: Client, query: CallbackQuery):
-        listener_does_match, listener = await self.check_if_has_matching_listener(client, query)
+        listener_does_match, listener = await self.check_if_has_matching_listener(
+            client, query
+        )
 
         handler_does_match = (
-            await self.filters(client, query)
-            if callable(self.filters)
-            else True
+            await self.filters(client, query) if callable(self.filters) else True
         )
 
         data = self.compose_data_identifier(query)
@@ -83,7 +91,9 @@ class CallbackQueryHandler(pyrogram.handlers.callback_query_handler.CallbackQuer
 
     @should_patch
     async def resolve_future(self, client: Client, query: CallbackQuery, *args):
-        listener_does_match, listener = await self.check_if_has_matching_listener(client, query)
+        listener_does_match, listener = await self.check_if_has_matching_listener(
+            client, query
+        )
 
         if listener and not listener.future.done():
             listener.future.set_result(query)

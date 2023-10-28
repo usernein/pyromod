@@ -25,4 +25,11 @@ from .message import Message
 from .message_handler import MessageHandler
 from .user import User
 
-__all__ = ["Client", "MessageHandler", "Message", "Chat", "User", "CallbackQueryHandler"]
+__all__ = [
+    "Client",
+    "MessageHandler",
+    "Message",
+    "Chat",
+    "User",
+    "CallbackQueryHandler",
+]
