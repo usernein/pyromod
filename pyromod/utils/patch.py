@@ -20,10 +20,10 @@ along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 from typing import Type, T
 
 
-def patch(target_class):
+def patch_into(target_class):
     def is_patchable(item):
         func = item[1]
-        return getattr(func, "patchable", False)
+        return getattr(func, "should_patch", False)
 
     def wrapper(base_class: Type[T]) -> T:
         for name, func in filter(is_patchable, base_class.__dict__.items()):
@@ -31,12 +31,12 @@ def patch(target_class):
 
             setattr(target_class, "old" + name, old_value)
             setattr(target_class, name, func)
-            
+
         return base_class
 
     return wrapper
 
 
-def patchable(func: Type[T]) -> T:
-    func.patchable = True
+def should_patch(func: Type[T]) -> T:
+    func.should_patch = True
     return func

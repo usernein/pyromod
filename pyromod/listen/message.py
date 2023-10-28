@@ -4,14 +4,14 @@ import pyrogram
 
 from .client import Client
 from ..types import ListenerTypes
-from ..utils import patch, patchable
+from ..utils import patch_into, should_patch
 
 
-@patch(pyrogram.types.messages_and_media.message.Message)
+@patch_into(pyrogram.types.messages_and_media.message.Message)
 class Message(pyrogram.types.messages_and_media.message.Message):
     _client = Client
 
-    @patchable
+    @should_patch
     async def wait_for_click(
             self,
             from_user_id: Optional[int] = None,
