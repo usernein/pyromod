@@ -96,7 +96,8 @@ class Client:
         *args,
         **kwargs
     ):
-        sent_message = await self.send_message(identifier[0], text, *args, **kwargs)
+        if text.strip() != "":
+            sent_message = await self.send_message(identifier[0], text, *args, **kwargs)
         response = await self.listen(
             identifier, filters, listener_type, timeout
         )
