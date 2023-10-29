@@ -24,7 +24,13 @@ class CallbackQueryHandler(
     @should_patch
     def compose_data_identifier(self, query: CallbackQuery):
         from_user = query.from_user
-        message_id = query.message.id if query.message else None
+
+        message_id = None
+        if query.message:
+            message_id = getattr(
+                query.message, "id", getattr(query.message, "message_id", None)
+            )
+
         chat_id = query.message.chat.id if query.message else None
         from_user_id = from_user.id if from_user else None
 
@@ -37,7 +43,7 @@ class CallbackQueryHandler(
 
     @should_patch
     async def check_if_has_matching_listener(
-            self, client: Client, query: CallbackQuery
+        self, client: Client, query: CallbackQuery
     ) -> tuple[bool, Listener]:
         data = self.compose_data_identifier(query)
 
@@ -77,9 +83,9 @@ class CallbackQueryHandler(
             non_user_specific_does_match = non_user_specific_identifier.matches(data)
 
             if (
-                    listener
-                    and (non_user_specific_does_match and not listener_does_match)
-                    and listener.unallowed_click_alert
+                listener
+                and (non_user_specific_does_match and not listener_does_match)
+                and listener.unallowed_click_alert
             ):
                 alert = (
                     listener.unallowed_click_alert
