@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional, Callable
+from typing import Optional, Callable, Dict, List
 
 import pyrogram
 from pyrogram.filters import Filter
@@ -12,7 +12,7 @@ from ..utils import should_patch, patch_into
 
 @patch_into(pyrogram.client.Client)
 class Client(pyrogram.client.Client):
-    listeners: dict[ListenerTypes, list[Listener]]
+    listeners: Dict[ListenerTypes, List[Listener]]
     old__init__: Callable
 
     @should_patch()
@@ -125,7 +125,7 @@ class Client(pyrogram.client.Client):
     @should_patch()
     def get_many_matching_listeners(
         self, pattern: Identifier, listener_type: ListenerTypes
-    ) -> list[Listener]:
+    ) -> List[Listener]:
         listeners = []
         for listener in self.listeners[listener_type]:
             if listener.identifier.matches(pattern):
