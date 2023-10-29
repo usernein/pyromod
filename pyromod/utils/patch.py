@@ -19,12 +19,9 @@ along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
 from contextlib import contextmanager, asynccontextmanager
 from inspect import iscoroutinefunction
-from logging import getLogger
 from typing import Callable, T, Type
 
 from pyrogram.sync import async_to_sync
-
-logger = getLogger(__name__)
 
 
 def patch_into(target_class):
@@ -60,9 +57,6 @@ def patch_into(target_class):
                 else:
                     func = contextmanager(func)
 
-            logger.info(
-                f"Patch Attribute To {target_class.__name__} From {container.__name__} : {name}"
-            )
             setattr(target_class, name, func)
         return container
 
