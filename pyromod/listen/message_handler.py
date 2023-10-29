@@ -24,8 +24,10 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
         from_user = message.from_user
         from_user_id = from_user.id if from_user else None
 
+        message_id = getattr(message, "id", getattr(message, "message_id", None))
+
         data = Identifier(
-            message_id=message.id, chat_id=message.chat.id, from_user_id=from_user_id
+            message_id=message_id, chat_id=message.chat.id, from_user_id=from_user_id
         )
 
         listener = client.get_single_listener(data, ListenerTypes.MESSAGE)

@@ -14,7 +14,7 @@ class User(pyrogram.types.user_and_chats.user.User):
 
     @should_patch
     def ask(self, text, *args, **kwargs):
-        return self._client.ask(text, *args, chat_id=self.id, user_id=self.id, **kwargs)
+        return self._client.ask(self.id, text, *args, user_id=self.id, **kwargs)
 
     @should_patch
     def stop_listening(self, *args, **kwargs):

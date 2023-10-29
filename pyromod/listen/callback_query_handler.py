@@ -24,9 +24,18 @@ class CallbackQueryHandler(
     @should_patch
     def compose_data_identifier(self, query: CallbackQuery):
         from_user = query.from_user
-        message_id = query.message.id if query.message else None
-        chat_id = query.message.chat.id if query.message else None
         from_user_id = from_user.id if from_user else None
+
+        chat_id = None
+        message_id = None
+
+        if query.message:
+            message_id = getattr(
+                query.message, "id", getattr(query.message, "message_id", None)
+            )
+
+            if query.message.chat:
+                chat_id = query.message.chat.id
 
         return Identifier(
             message_id=message_id,
@@ -76,7 +85,11 @@ class CallbackQueryHandler(
 
             matches = permissive_identifier.matches(data)
 
-            if (matches and not listener_does_match) and listener.unallowed_click_alert:
+            if (
+                listener
+                and (matches and not listener_does_match)
+                and listener.unallowed_click_alert
+            ):
                 alert = (
                     listener.unallowed_click_alert
                     if isinstance(listener.unallowed_click_alert, str)

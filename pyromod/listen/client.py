@@ -84,7 +84,10 @@ class Client(pyrogram.client.Client):
         *args,
         **kwargs,
     ):
-        request = await self.send_message(chat_id, text, *args, **kwargs)
+        sent_message = None
+        if text.strip() != "":
+            sent_message = await self.send_message(chat_id, text, *args, **kwargs)
+
         response = await self.listen(
             filters=filters,
             listener_type=listener_type,
@@ -96,7 +99,7 @@ class Client(pyrogram.client.Client):
             inline_message_id=inline_message_id,
         )
         if response:
-            response.request = request
+            response.sent_message = sent_message
 
         return response
 
