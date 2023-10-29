@@ -7,13 +7,16 @@ from pyrogram.types import (
 )
 
 
-def ikb(rows=[]):
+def ikb(rows=None):
+    if rows is None:
+        rows = []
+
     lines = []
     for row in rows:
         line = []
         for button in row:
             button = (
-                btn(button, button) if type(button) == str else btn(*button)
+                btn(button, button) if isinstance(button, str) else btn(*button)
             )  # InlineKeyboardButton
             line.append(button)
         lines.append(line)
@@ -57,7 +60,10 @@ def ntb(button):
     # return {'text': text, type: value}
 
 
-def kb(rows=[], **kwargs):
+def kb(rows=None, **kwargs):
+    if rows is None:
+        rows = []
+
     lines = []
     for row in rows:
         line = []
@@ -80,5 +86,5 @@ def force_reply(selective=True):
     return ForceReply(selective=selective)
 
 
-def array_chunk(input, size):
-    return [input[i : i + size] for i in range(0, len(input), size)]
+def array_chunk(input_array, size):
+    return [input_array[i : i + size] for i in range(0, len(input_array), size)]

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no, viewport-fit=cover">
+    <meta name="description" content="Documentation for pyromod">
+    <title>pyromod docs</title>
+
+    <!-- Theme: Simple Dark -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css">
+
+    <link rel="stylesheet"
+          href="https://raw.githubusercontent.com/PrismJS/prism-themes/master/themes/prism-atom-dark.css">
+
+
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            /* --theme-hue: 325; */
+        }
+    </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+    // Docsify Configuration
+    window.$docsify = {
+        loadSidebar: true,
+        themeColor: '#dd9809',
+        coverpage: 'cover.md',
+        themeable: {
+            readyTransition: true
+        },
+        copyCode: {
+            buttonText: 'Copy',
+            errorText: 'Error',
+            successText: 'Copied',
+        },
+    };
+</script>
+
+<!-- Required -->
+<script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+<script src="https://unpkg.com/docsify-copy-code@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/js/docsify-themeable.min.js"></script>
+
+<!-- PrismJS Python -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/components/prism-python.min.js"></script>
+
+<!-- Recommended -->
+<script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min.js"></script>
+</body>
+</html>

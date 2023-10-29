@@ -1,148 +1,151 @@
 # pyromod
+
 [![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat&logo=telegram&logoColor=white)](https://t.me/pyromodchat)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/usernein/pyromod)
 [![Downloads](https://static.pepy.tech/badge/pyromod)](https://pepy.tech/project/pyromod)
 [![Downloads](https://static.pepy.tech/badge/pyromod/month)](https://pepy.tech/project/pyromod)
 
-A monkeypatcher add-on for Pyrogram which does conversation handling and other cool stuff.
+pyromod is a versatile Python add-on for the Pyrogram library, designed to make developing Telegram bots faster and more
+efficient.
 
-In other words, it is a compilation of utilities i developed for improving my personal experience with Pyrogram.
-It works **together** with Pyrogram, it is **not** a fork/modded version. It does monkeypatching to add features to Pyrogram classes on the go (so i don't need to update on every Pyrogram's release).
+It's based on **monkeypatching**, which means it works together with Pyrogram, rather than being a fork or modified
+version. It
+adds features to Pyrogram classes on the go, so you don't need to update it every time Pyrogram is updated.
 
-## Usage
-Import `pyromod` one time in your script and you'll already be able to use the modified pyrogram in all your handlers. Example:
+Whether you're building a simple chatbot or a complex form to get multiple responses from the user, pyromod has you
+covered. It enhances Pyrogram with a range
+of advanced features, simplifies conversation handling, and offers a high degree of customizability.
+
+## Key Features
+
+- **Effortless Bot Development:** pyromod streamlines the process of building conversational Telegram bots, saving you
+  time and effort
+  during development.
+
+- **Advanced Conversation Management:** Managing conversations with users is made easier, allowing you to create dynamic
+  and interactive interactions much easier, without having to save states anywhere, by leveraging the power of
+  async/await syntax.
+
+- **Effortless Inline Keyboards Creation:** Creating inline keyboards is easier than ever with pyromod's inline keyboard
+  helper functions.
+
+- **User-Friendly Pagination:** Enhance the user experience by providing easy navigation tools with the pyromod's
+  pagination
+  helpers.
+
+- **Highly Customizable:** pyromod's configuration options let you customize its behavior to meet your specific project
+  requirements.
+
+## Examples
+
+**Awaiting a single message from a specific chat:**
+
 ```python
-# config.py
-import pyromod
-from pyrogram import Client
-
-app = Client('my_session')
+response = await client.listen(chat_id=chat_id)
 ```
 
-Then you can, from another file, do `from config import app` to import the modded Pyrogram Client we created above. It will be modded globally.
+**Awaiting a single message from a specific user in a specific chat:**
 
-All the patches are applied automatically as soon as pyromod is imported.
-
-## Methods
-All pyromod methods are callable by any of these ways:
-- `await Client.<method>(identifier, ...)`
-- `await Chat.<method>()`
-- `await User.<method>()`
-
-In the last two, Pyrogram automatically gets the ids from the object, to compound the `identifier` tuple that `Client.listen` uses.
-
-These are the methods pyromod adds:
-- `listen(identifier, filters=None, listener_type=ListenerTypes.MESSAGE, timeout=None, unallowed_click_alert=True)`
-Awaits for a new message in the specified chat and returns its Message object. If listener_type is set to `ListenerTypes.CALLBACK_QUERY`, it awaits and returns a CallbackQuery object.
-You can pass Update Filters to the `filters` parameter just like you do for the update handlers. e.g. `filters=filters.photo & filters.bot`
-`identifier` is a tuple containing, in this exact order, (chat_id, user_id, message_id). It lets you specify exactly which update you want. You don't need to worry about that if you mostly use the bound methods.
-`unnalowed_click_alert` is the text that users will see in an alert when the button is not waiting for them to click. If True, it uses the default text at `PyromodConfig.unnalowed_click_alert_text`. If False, no text is shown.
-
-- `ask(text, identifier, filters=None, listener_type=ListenerTypes.MESSAGE, timeout=None, unallowed_click_alert=True)`
-Same as `listen`, but sends a message to identifier[0] before and only then waits for a response.
-You can additionally pass any of the `Client.send_message()` parameters. Check the example below.
-The object of the sent message is returned inside of the attribute `request`
-
-Example:
 ```python
-answer = await message.chat.ask('*Send me your name:*', parse_mode=enums.ParseMode.MARKDOWN)
-await answer.request.edit_text("Name received!")
-await answer.reply(f'Your name is: {answer.text}', quote=True)    
+response = await client.listen(chat_id=chat_id, user_id=user_id)
 ```
 
-- `Message.wait_for_click(from_user_id=None, timeout=None, filters=None, alert=True)`
-Awaits from a click on any button on the Message object. If `from_user_id` is passed, pyromod will wait for a click of that user.
-If you pass any text to `alert`, it will be shown to any other user. If `alert` is True, it will use the default text. If False, no text will be shown.
+**Asking the user a question then await for the response:**
 
-## `pyromod.helpers`
-Tools for creating inline keyboards a lot easier.
+```python
+response = await client.ask(chat_id=chat_id, text='What is your name?')
+```
 
-### `pyromod.helpers.ikb`
+**Asking the user a question then await for the response, with a timeout:**
 
-Creates a inline keyboard.
-Its first and only argument is a list (the keyboard itself) containing lists (the lines) of buttons, which can be lists or tuples. I use tuples to avoid a mess with a lot of brackets. Tuples makes it easier to read.
+```python
+try:
+    response = await client.ask(chat_id=chat_id, text='What is your name?', timeout=10)
+except ListenerTimeout:
+    await message.reply('You took too long to answer.')
+```
 
-The button syntax is very simple: `(TEXT, VALUE, TYPE)`, with TYPE being any existent button type (e.g. `url`) and VALUE is its value. If you omit the type, it will be considered as a callback button.
-If you pass only a string as button, it will be used as text and callback_data for the InlineKeyboardButton.
-This syntax will be automagically converted by pyromod.
+**Full handler example, getting user's name and age with bound method Chat.ask:**
 
-Examples:
+```python
+from pyromod import Client, Message
+from pyrogram import filters
+
+
+@Client.on_message(filters.command('form'))
+async def on_form(client: Client, message: Message):
+    chat = message.chat
+
+    name = await chat.ask('What is your name?', filters=filters.text)
+    age = await chat.ask('What is your age?', filters=filters.text)
+
+    await message.reply(f'Your name is {name.text} and you are {age.text} years old.')
+```
+
+**Easier inline keyboard creation:**
+
 ```python
 from pyromod.helpers import ikb
-...
+
 keyboard = ikb([
-    [('Button 1', 'call_1'), ('Button 2', 'call_2')],
+    [('Button 1', 'callback_data_1'), ('Button 2', 'callback_data_2')],
     [('Another button', 't.me/pyromodchat', 'url')]
 ])
-await message.reply('Easy inline keyboard', reply_markup=keyboard)
 ```
+
+## Installation
+
+To get started with pyromod, you can install it using pip:
+
+```bash
+pip install pyromod
+```
+
+Or poetry:
+
+```bash
+poetry add pyromod
+```
+
+Or rye:
+
+```bash
+rye add pyromod
+```
+
+## Initialization
+
+To initialize pyromod, on the file that creates the client instance, simply import the Client class from pyromod instead
+of pyrogram:
 
 ```python
-keyboard = ikb([
-	["Mars", "Earth", "Venus"],
-	["Saturn", "Jupyter"]
-])
-await message.reply("Easiest inline keyboard", reply_markup=keyboard)
+from pyromod import Client
 ```
 
-- `pyromod.helpers.array_chunk`
-Chunk the elements of a list into small lists. i.e. [1, 2, 3, 4] can become [[1,2], [3,4]]. This is extremely useful if you want to build a keyboard dinamically with more than 1 column. You just put all buttons together in a list and run:
-```python
-lines = array_chunk(buttons, 2)
-keyboard = ikb(lines)
-```
-This will generate a list of lines with 2 buttons on each one.
+And that's all! You can still use the `Client` class as you would normally do with Pyrogram, but now having all the
+extra features.
 
-### `pyromod.nav`
-Tools for creating navigation keyboards.
+You don't need to change the imports on the plugins files. Even by importing `Client` from pyrogram, the pyromod
+features will be available anyway. In order to monkeyatch pyromod features successfully, it's just required that the
+first `Client` class imported to your project code should be from pyromod. Then all the other future `Client` instances
+will be patched automatically.
 
-- `pyromod.nav.Pagination`
-Creates a full paginated keyboard. Usage:
-```python
-from pyrogram import Client, filters
-from pyromod.nav import Pagination
-from pyromod.helpers import ikb
+You just need to import from pyromod if you want your IDE to recognize and suggest
+the extra features based on `pyromod.Client` type.
 
-def page_data(page):
-    return f'view_page {page}'
-def item_data(item, page):
-    return f'view_item {item} {page}'
-def item_title(item, page):
-    return f'Item {item} of page {page}'
+## Contributing
 
-@Client.on_message(filters.regex('/nav'))
-async def on_nav(c,m):
-    objects = [*range(1,100)]
-    page = Pagination(
-        objects,
-        page_data=page_data, # callback to define the callback_data for page buttons in the bottom
-        item_data=item_data, # callback to define the callback_data for each item button
-        item_title=item_title # callback to define the text for each item button
-    )
-    index = 0 # in which page is it now? (used to calculate the offset)
-    lines = 5 # how many lines of the keyboard to include for the items
-    columns = how many columns include in each items' line
-    kb = page.create(index, lines, columns)
-    await m.reply('Test', reply_markup=ikb(kb))
-```
+We welcome contributions from the community to make pyromod even better.
 
-## pyromod.PyrogramConfig
-It lets you do some tweaks on pyromod behavior.
-```python
-class PyromodConfig:
-    timeout_handler = None
-    stopped_handler = None
-    throw_exceptions = True
-    unallowed_click_alert = True
-    unallowed_click_alert_text = (
-        "[pyromod] You're not expected to click this button."
-    )
-```
-`timeout_handler` and `stopped_handler` are callbacks that receive (identifier, listener_data) as arguments. timeout_handler receives an extra arg `timeout`. When they are in use, pyromod won't throw the exceptions ListenerStopped and ListenedTimeout.
+Feel free to open issues, submit pull requests,
+or contribute in any way that aligns with our goals.
 
 ### Copyright & License
+
 This project may include snippets of Pyrogram code
-- Pyrogram - Telegram MTProto API Client Library for Python. Copyright (C) 2017-2022 Dan <<https://github.com/delivrance>>
+
+- Pyrogram - Telegram MTProto API Client Library for Python. Copyright (C) 2017-2022
+  Dan <<https://github.com/delivrance>>
 
 Licensed under the terms of the [GNU Lesser General Public License v3 or later (LGPLv3+)](COPYING.lesser)
 
