@@ -17,29 +17,32 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with pyromod.  If not, see <https://www.gnu.org/licenses/>.
 """
-from typing import Callable
-from logging import getLogger
-from inspect import iscoroutinefunction
 from contextlib import contextmanager, asynccontextmanager
+from inspect import iscoroutinefunction
+from logging import getLogger
+from typing import Callable, T, Type
 
 from pyrogram.sync import async_to_sync
 
 logger = getLogger(__name__)
 
 
-def patch(target_class):
+def patch_into(target_class):
     def is_patchable(item):
         func = item[1]
         return getattr(func, "should_patch", False)
 
-    def wrapper(container):
+    def wrapper(container: Type[T]) -> T:
         for name, func in filter(is_patchable, container.__dict__.items()):
             old = getattr(target_class, name, None)
-            if old is not None: # Not adding 'old' to new func
+            if old is not None:  # Not adding 'old' to new func
                 setattr(target_class, "old" + name, old)
 
             # Worse Code
-            tempConf = {i: getattr(func, i, False) for i in ["is_property", "is_static", "is_context"]}
+            tempConf = {
+                i: getattr(func, i, False)
+                for i in ["is_property", "is_static", "is_context"]
+            }
 
             async_to_sync(container, name)
             func = getattr(container, name)
@@ -57,14 +60,18 @@ def patch(target_class):
                 else:
                     func = contextmanager(func)
 
-            logger.info(f"Patch Attribute To {target_class.__name__} From {container.__name__} : {name}")
+            logger.info(
+                f"Patch Attribute To {target_class.__name__} From {container.__name__} : {name}"
+            )
             setattr(target_class, name, func)
         return container
 
     return wrapper
 
 
-def should_patch(is_property: bool = False, is_static: bool = False, is_context: bool = False) -> Callable:
+def should_patch(
+    is_property: bool = False, is_static: bool = False, is_context: bool = False
+) -> Callable:
     """
     A decorator that marks a function as patchable.
 
@@ -98,10 +105,12 @@ def should_patch(is_property: bool = False, is_static: bool = False, is_context:
     Returns:
         - A callable object that marks the function as patchable.
     """
+
     def wrapper(func: Callable) -> Callable:
         func.should_patch = True
         func.is_property = is_property
         func.is_static = is_static
         func.is_context = is_context
         return func
+
     return wrapper
