@@ -1,3 +1,4 @@
+from inspect import iscoroutinefunction
 from typing import Callable, Tuple
 
 import pyrogram
@@ -19,7 +20,7 @@ class CallbackQueryHandler(
     @should_patch()
     def __init__(self, callback: Callable, filters: Filter = None):
         self.original_callback = callback
-        self.old__init__(self.resolve_future, filters)
+        self.old__init__(self.resolve_future_or_callback, filters)
 
     @should_patch()
     def compose_data_identifier(self, query: CallbackQuery):
@@ -103,14 +104,28 @@ class CallbackQueryHandler(
         return listener_does_match or handler_does_match
 
     @should_patch()
-    async def resolve_future(self, client: Client, query: CallbackQuery, *args):
+    async def resolve_future_or_callback(
+        self, client: Client, query: CallbackQuery, *args
+    ):
         listener_does_match, listener = await self.check_if_has_matching_listener(
             client, query
         )
 
-        if listener and not listener.future.done():
-            listener.future.set_result(query)
+        if listener and listener_does_match:
             client.remove_listener(listener)
-            raise pyrogram.StopPropagation
+
+            if listener.future and not listener.future.done():
+                listener.future.set_result(query)
+
+                raise pyrogram.StopPropagation
+            elif listener.callback:
+                if iscoroutinefunction(listener.callback):
+                    await listener.callback(client, query, *args)
+                else:
+                    listener.callback(client, query, *args)
+
+                raise pyrogram.StopPropagation
+            else:
+                raise ValueError("Listener must have either a future or a callback")
         else:
             await self.original_callback(client, query, *args)

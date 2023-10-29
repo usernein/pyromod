@@ -1,3 +1,4 @@
+from inspect import iscoroutinefunction
 from typing import Callable
 
 import pyrogram
@@ -17,7 +18,7 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
     @should_patch()
     def __init__(self, callback: Callable, filters: Filter = None):
         self.original_callback = callback
-        self.old__init__(self.resolve_future, filters)
+        self.old__init__(self.resolve_future_or_callback, filters)
 
     @should_patch()
     async def check_if_has_matching_listener(self, client: Client, message: Message):
@@ -57,15 +58,26 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
         return listener_does_match or handler_does_match
 
     @should_patch()
-    async def resolve_future(self, client: Client, message: Message, *args):
+    async def resolve_future_or_callback(self, client: Client, message: Message, *args):
         listener_does_match, listener = await self.check_if_has_matching_listener(
             client, message
         )
 
-        if listener_does_match:
-            if not listener.future.done():
+        if listener and listener_does_match:
+            client.remove_listener(listener)
+
+            if listener.future and not listener.future.done():
                 listener.future.set_result(message)
-                client.remove_listener(listener)
+
                 raise pyrogram.StopPropagation
+            elif listener.callback:
+                if iscoroutinefunction(listener.callback):
+                    await listener.callback(client, message, *args)
+                else:
+                    listener.callback(client, message, *args)
+
+                raise pyrogram.StopPropagation
+            else:
+                raise ValueError("Listener must have either a future or a callback")
         else:
             await self.original_callback(client, message, *args)
