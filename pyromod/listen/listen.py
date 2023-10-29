@@ -192,13 +192,13 @@ class MessageHandler:
 
     @patchable
     async def check(self, client, message):
-        # patch
-        if not message.from_user:
-            message_from_user_id = None
-        else:
-            message_from_user_id = message.from_user.id
+        data = (
+            message.chat.id,
+            message.from_user.id,
+            getattr(message, "id", getattr(message, "message_id", None)),
+        )
         listener = client.match_listener(
-            (message.chat.id, message_from_user_id, message.id),
+            data,
             ListenerTypes.MESSAGE,
         )[0]
         #################################
@@ -222,13 +222,18 @@ class MessageHandler:
 
     @patchable
     async def resolve_future(self, client, message, *args):
+        data = (
+            message.chat.id,
+            message.from_user.id,
+            getattr(message, "id", getattr(message, "message_id", None)),
+        )
         listener_type = ListenerTypes.MESSAGE
         if not message.from_user:
             message_from_user_id = None
         else:
             message_from_user_id = message.from_user.id
         listener, identifier = client.match_listener(
-            (message.chat.id, message_from_user_id, message.id),
+            data,
             listener_type,
         )
         listener_does_match = False
@@ -256,20 +261,26 @@ class CallbackQueryHandler:
 
     @patchable
     async def check(self, client, query):
+        data = (
+            query.message.chat.id,
+            query.from_user.id,
+            getattr(query.message, "id", getattr(query.message, "message_id", None)),
+        )
+        listener_type = ListenerTypes.CALLBACK_QUERY
         listener = client.match_listener(
-            (query.message.chat.id, query.from_user.id, query.message.id),
-            ListenerTypes.CALLBACK_QUERY,
+            data,
+            listener_type,
         )[0]
 
         # managing unallowed user clicks
         if PyromodConfig.unallowed_click_alert:
             permissive_listener = client.match_listener(
                 identifier_pattern=(
-                    query.message.chat.id,
+                    data[0],
                     None,
-                    query.message.id,
+                    data[2],
                 ),
-                listener_type=ListenerTypes.CALLBACK_QUERY,
+                listener_type=listener_type,
             )[0]
 
             if (permissive_listener and not listener) and permissive_listener[
@@ -290,9 +301,14 @@ class CallbackQueryHandler:
 
     @patchable
     async def resolve_future(self, client, query, *args):
+        data = (
+            query.message.chat.id,
+            query.from_user.id,
+            getattr(query.message, "id", getattr(query.message, "message_id", None)),
+        )
         listener_type = ListenerTypes.CALLBACK_QUERY
         listener, identifier = client.match_listener(
-            (query.message.chat.id, query.from_user.id, query.message.id),
+            data,
             listener_type,
         )
 
@@ -313,8 +329,9 @@ class Message(pyrogram.types.messages_and_media.message.Message):
         filters=None,
         alert: Union[str, bool] = True,
     ):
+        msg_id = getattr(self, "id", getattr(self, "message_id", None))
         return await self._client.listen(
-            (self.chat.id, from_user_id, self.id),
+            (self.chat.id, from_user_id, msg_id),
             listener_type=ListenerTypes.CALLBACK_QUERY,
             timeout=timeout,
             filters=filters,
