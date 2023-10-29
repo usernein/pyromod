@@ -24,7 +24,9 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
         from_user = message.from_user
         from_user_id = from_user.id if from_user else None
 
-        data = Identifier(message_id=message.id, chat_id=message.chat.id, from_user_id=from_user_id)
+        data = Identifier(
+            message_id=message.id, chat_id=message.chat.id, from_user_id=from_user_id
+        )
 
         listener = client.get_single_listener(data, ListenerTypes.MESSAGE)
 
@@ -40,12 +42,12 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
 
     @should_patch
     async def check(self, client: Client, message: Message):
-        listener_does_match = (await self.check_if_has_matching_listener(client, message))[0]
+        listener_does_match = (
+            await self.check_if_has_matching_listener(client, message)
+        )[0]
 
         handler_does_match = (
-            await self.filters(client, message)
-            if callable(self.filters)
-            else True
+            await self.filters(client, message) if callable(self.filters) else True
         )
 
         # let handler get the chance to handle if listener
@@ -54,7 +56,9 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
 
     @should_patch
     async def resolve_future(self, client: Client, message: Message, *args):
-        listener_does_match, listener = await self.check_if_has_matching_listener(client, message)
+        listener_does_match, listener = await self.check_if_has_matching_listener(
+            client, message
+        )
 
         if listener_does_match:
             if not listener.future.done():

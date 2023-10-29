@@ -10,7 +10,7 @@ from pyrogram.types import (
 def ikb(rows=None):
     if rows is None:
         rows = []
-        
+
     lines = []
     for row in rows:
         line = []
@@ -87,4 +87,4 @@ def force_reply(selective=True):
 
 
 def array_chunk(input_array, size):
-    return [input_array[i: i + size] for i in range(0, len(input_array), size)]
+    return [input_array[i : i + size] for i in range(0, len(input_array), size)]

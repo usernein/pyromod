@@ -28,7 +28,7 @@ class Pagination:
             return str(x)
 
         def default_item_callback(i, pg):
-            return f'[{pg}] {i}'
+            return f"[{pg}] {i}"
 
         self.objects = objects
         self.page_data = page_data or default_page_callback
@@ -43,7 +43,9 @@ class Pagination:
         cutted = self.objects[offset:stop]
 
         total = len(self.objects)
-        pages_range = [*range(1, math.ceil(total / quant_per_page) + 1)]  # each item is a page
+        pages_range = [
+            *range(1, math.ceil(total / quant_per_page) + 1)
+        ]  # each item is a page
         last_page = len(pages_range)
 
         nav = []
@@ -54,35 +56,39 @@ class Pagination:
                 text = f"· {n} ·" if n == page else n
                 nav.append((text, self.page_data(n)))
             if last_page >= 4:
-                nav.append(
-                    ('4 ›' if last_page > 5 else 4, self.page_data(4))
-                )
+                nav.append(("4 ›" if last_page > 5 else 4, self.page_data(4)))
             if last_page > 4:
                 nav.append(
-                    (f'{last_page} »' if last_page > 5 else last_page, self.page_data(last_page))
+                    (
+                        f"{last_page} »" if last_page > 5 else last_page,
+                        self.page_data(last_page),
+                    )
                 )
         elif page >= last_page - 2:
-            nav.extend([
-                ('« 1' if last_page - 4 > 1 else 1, self.page_data(1)),
-                (f'‹ {last_page - 3}' if last_page - 4 > 1 else last_page - 3, self.page_data(last_page - 3))
-            ])
+            nav.extend(
+                [
+                    ("« 1" if last_page - 4 > 1 else 1, self.page_data(1)),
+                    (
+                        f"‹ {last_page - 3}" if last_page - 4 > 1 else last_page - 3,
+                        self.page_data(last_page - 3),
+                    ),
+                ]
+            )
             for n in range(last_page - 2, last_page + 1):
                 text = f"· {n} ·" if n == page else n
                 nav.append((text, self.page_data(n)))
         else:
             nav = [
-                ('« 1', self.page_data(1)),
-                (f'‹ {page - 1}', self.page_data(page - 1)),
-                (f'· {page} ·', "noop"),
-                (f'{page + 1} ›', self.page_data(page + 1)),
-                (f'{last_page} »', self.page_data(last_page)),
+                ("« 1", self.page_data(1)),
+                (f"‹ {page - 1}", self.page_data(page - 1)),
+                (f"· {page} ·", "noop"),
+                (f"{page + 1} ›", self.page_data(page + 1)),
+                (f"{last_page} »", self.page_data(last_page)),
             ]
 
         buttons = []
         for item in cutted:
-            buttons.append(
-                (self.item_title(item, page), self.item_data(item, page))
-            )
+            buttons.append((self.item_title(item, page), self.item_data(item, page)))
         kb_lines = array_chunk(buttons, columns)
         if last_page > 1:
             kb_lines.append(nav)

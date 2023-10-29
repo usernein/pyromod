@@ -18,6 +18,4 @@ class Chat(pyrogram.types.user_and_chats.chat.Chat):
 
     @should_patch
     def stop_listening(self, *args, **kwargs):
-        return self._client.stop_listening(
-            *args, chat_id=self.id, **kwargs
-        )
+        return self._client.stop_listening(*args, chat_id=self.id, **kwargs)
