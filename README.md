@@ -16,6 +16,10 @@ Whether you're building a simple chatbot or a complex form to get multiple respo
 covered. It enhances Pyrogram with a range
 of advanced features, simplifies conversation handling, and offers a high degree of customizability.
 
+## Documentation
+
+You can find the full documentation at [pyromod.pauxis.dev](https://pyromod.pauxis.dev).
+
 ## Key Features
 
 - **Effortless Bot Development:** pyromod streamlines the process of building conversational Telegram bots, saving you
