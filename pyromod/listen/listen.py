@@ -201,6 +201,7 @@ class MessageHandler:
             data,
             ListenerTypes.MESSAGE,
         )[0]
+        #################################
 
         listener_does_match = handler_does_match = False
 
@@ -227,6 +228,10 @@ class MessageHandler:
             getattr(message, "id", getattr(message, "message_id", None)),
         )
         listener_type = ListenerTypes.MESSAGE
+        if not message.from_user:
+            message_from_user_id = None
+        else:
+            message_from_user_id = message.from_user.id
         listener, identifier = client.match_listener(
             data,
             listener_type,
