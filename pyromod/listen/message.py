@@ -11,7 +11,7 @@ from ..utils import patch_into, should_patch
 class Message(pyrogram.types.messages_and_media.message.Message):
     _client = Client
 
-    @should_patch
+    @should_patch()
     async def wait_for_click(
         self,
         from_user_id: Optional[int] = None,

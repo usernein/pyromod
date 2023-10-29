@@ -16,12 +16,12 @@ class CallbackQueryHandler(
 ):
     old__init__: Callable
 
-    @should_patch
+    @should_patch()
     def __init__(self, callback: Callable, filters: Filter = None):
         self.original_callback = callback
         self.old__init__(self.resolve_future, filters)
 
-    @should_patch
+    @should_patch()
     def compose_data_identifier(self, query: CallbackQuery):
         from_user = query.from_user
         from_user_id = from_user.id if from_user else None
@@ -44,9 +44,9 @@ class CallbackQueryHandler(
             inline_message_id=query.inline_message_id,
         )
 
-    @should_patch
+    @should_patch()
     async def check_if_has_matching_listener(
-            self, client: Client, query: CallbackQuery
+        self, client: Client, query: CallbackQuery
     ) -> tuple[bool, Listener]:
         data = self.compose_data_identifier(query)
 
@@ -62,7 +62,7 @@ class CallbackQueryHandler(
 
         return listener_does_match, listener
 
-    @should_patch
+    @should_patch()
     async def check(self, client: Client, query: CallbackQuery):
         listener_does_match, listener = await self.check_if_has_matching_listener(
             client, query
@@ -102,7 +102,7 @@ class CallbackQueryHandler(
         # exists but its filters doesn't match
         return listener_does_match or handler_does_match
 
-    @should_patch
+    @should_patch()
     async def resolve_future(self, client: Client, query: CallbackQuery, *args):
         listener_does_match, listener = await self.check_if_has_matching_listener(
             client, query

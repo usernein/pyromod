@@ -14,12 +14,12 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
     filters: Filter
     old__init__: Callable
 
-    @should_patch
+    @should_patch()
     def __init__(self, callback: Callable, filters: Filter = None):
         self.original_callback = callback
         self.old__init__(self.resolve_future, filters)
 
-    @should_patch
+    @should_patch()
     async def check_if_has_matching_listener(self, client: Client, message: Message):
         from_user = message.from_user
         from_user_id = from_user.id if from_user else None
@@ -42,7 +42,7 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
 
         return listener_does_match, listener
 
-    @should_patch
+    @should_patch()
     async def check(self, client: Client, message: Message):
         listener_does_match = (
             await self.check_if_has_matching_listener(client, message)
@@ -56,7 +56,7 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
         # exists but its filters doesn't match
         return listener_does_match or handler_does_match
 
-    @should_patch
+    @should_patch()
     async def resolve_future(self, client: Client, message: Message, *args):
         listener_does_match, listener = await self.check_if_has_matching_listener(
             client, message
