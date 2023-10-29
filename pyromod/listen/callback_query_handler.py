@@ -1,5 +1,6 @@
-from typing import Callable
+from typing import Callable, Tuple
 from inspect import iscoroutinefunction
+
 
 import pyrogram
 from pyrogram.filters import Filter
@@ -48,7 +49,7 @@ class CallbackQueryHandler(
     @should_patch()
     async def check_if_has_matching_listener(
         self, client: Client, query: CallbackQuery
-    ) -> tuple[bool, Listener]:
+    ) -> Tuple[bool, Listener]:
         data = self.compose_data_identifier(query)
 
         listener = client.get_matching_listener(data, ListenerTypes.MESSAGE)
