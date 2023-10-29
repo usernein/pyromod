@@ -97,12 +97,12 @@ class Client:
         *args,
         **kwargs
     ):
-        request = await self.send_message(identifier[0], text, *args, **kwargs)
+        sent_message = await self.send_message(identifier[0], text, *args, **kwargs)
         response = await self.listen(
             identifier, filters, listener_type, timeout
         )
         if response:
-            response.request = request
+            response.sent_message = sent_message
 
         return response
 
