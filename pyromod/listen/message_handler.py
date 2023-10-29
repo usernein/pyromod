@@ -1,4 +1,5 @@
 from typing import Callable
+from inspect import iscoroutinefunction
 
 import pyrogram
 from pyrogram.filters import Filter
@@ -36,9 +37,15 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
 
         if listener:
             filters = listener.filters
-            listener_does_match = (
-                await filters(client, message) if callable(filters) else True
-            )
+            if callable(filters):
+                if iscoroutinefunction(filters.__call__):
+                    listener_does_match = await filters(client, message)
+                else:
+                    listener_does_match = await client.loop.run_in_executor(
+                        None, filters, client, message
+                    )
+            else:
+                listener_does_match = True
 
         return listener_does_match, listener
 
@@ -48,9 +55,15 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
             await self.check_if_has_matching_listener(client, message)
         )[0]
 
-        handler_does_match = (
-            await self.filters(client, message) if callable(self.filters) else True
-        )
+        if callable(self.filters):
+            if iscoroutinefunction(self.filters.__call__):
+                handler_does_match = await self.filters(client, message)
+            else:
+                handler_does_match = await client.loop.run_in_executor(
+                    None, self.filters, client, message
+                )
+        else:
+            handler_does_match = True
 
         # let handler get the chance to handle if listener
         # exists but its filters doesn't match
