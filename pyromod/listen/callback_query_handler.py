@@ -24,6 +24,7 @@ class CallbackQueryHandler(
     @should_patch
     def compose_data_identifier(self, query: CallbackQuery):
         from_user = query.from_user
+        from_user_id = from_user.id if from_user else None
 
         message_id = None
         if query.message:
@@ -31,8 +32,9 @@ class CallbackQueryHandler(
                 query.message, "id", getattr(query.message, "message_id", None)
             )
 
-        chat_id = query.message.chat.id if query.message else None
-        from_user_id = from_user.id if from_user else None
+        chat_id = None
+        if query.message and query.message.chat:
+            chat_id = query.message.chat.id
 
         return Identifier(
             message_id=message_id,
