@@ -99,12 +99,13 @@ class Client:
         *args,
         **kwargs,
     ):
-        request = await self.send_message(identifier[0], text, *args, **kwargs)
+        if text.strip() != "":
+            sent_message = await self.send_message(identifier[0], text, *args, **kwargs)
         response = await self.listen(
             identifier, filters, listener_type, timeout
         )
         if response:
-            response.request = request
+            response.sent_message = sent_message
 
         return response
 
@@ -199,7 +200,7 @@ class MessageHandler:
             user = user.id
         try:
             listener = client.match_listener(
-                (message.chat.id, user, message.id),
+                (message.chat.id, user, getattr(message, "id", getattr(message, "message_id", None))),
                 ListenerTypes.MESSAGE,
             )[0]
         except AttributeError as err:
@@ -237,10 +238,22 @@ class MessageHandler:
     @patchable()
     async def resolve_future(self, client, message, *args):
         listener_type = ListenerTypes.MESSAGE
-        if user := getattr(message, "from_user", None):
-            user = user.id
+        
+        if not message.from_user:
+            message_from_user_id = None
+        else:
+            message_from_user_id = message.from_user.id
+            
+        
+        data = (
+            message.chat.id,
+            message_from_user_id,
+            getattr(message, "id", getattr(message, "message_id", None)),
+        )
+            
+            
         listener, identifier = client.match_listener(
-            (message.chat.id, user, message.id),
+            data,
             listener_type,
         )
         listener_does_match = False
@@ -276,7 +289,7 @@ class CallbackQueryHandler:
     async def check(self, client, query):
         chatID, mID = None, None
         if message := getattr(query, "message", None):
-            chatID, mID = message.chat.id, message.id
+            chatID, mID = message.chat.id, getattr(query.message, "id", getattr(query.message, "message_id", None))
         try:
             listener = client.match_listener(
                 (chatID, query.from_user.id, mID),
@@ -294,7 +307,7 @@ class CallbackQueryHandler:
                     None,
                     mID,
                 ),
-                listener_type=ListenerTypes.CALLBACK_QUERY,
+                listener_type=listener_type,
             )[0]
 
             if (permissive_listener and not listener) and permissive_listener[
@@ -323,10 +336,15 @@ class CallbackQueryHandler:
 
     @patchable()
     async def resolve_future(self, client, query, *args):
+        data = (
+            query.message.chat.id,
+            query.from_user.id,
+            getattr(query.message, "id", getattr(query.message, "message_id", None)),
+        )
         listener_type = ListenerTypes.CALLBACK_QUERY
         chatID, mID = None, None
         if message := getattr(query, "message", None):
-            chatID, mID = message.chat.id, message.id
+            chatID, mID = message.chat.id, getattr(query.message, "id", getattr(query.message, "message_id", None))
         listener, identifier = client.match_listener(
             (chatID, query.from_user.id, mID),
             listener_type,
@@ -349,8 +367,9 @@ class Message(pyrogram.types.messages_and_media.message.Message):
         filters=None,
         alert: Union[str, bool] = True,
     ):
+        msg_id = getattr(self, "id", getattr(self, "message_id", None))
         return await self._client.listen(
-            (self.chat.id, from_user_id, self.id),
+            (self.chat.id, from_user_id, msg_id),
             listener_type=ListenerTypes.CALLBACK_QUERY,
             timeout=timeout,
             filters=filters,
