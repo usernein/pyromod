@@ -50,7 +50,7 @@ class CallbackQueryHandler(
     ) -> Tuple[bool, Listener]:
         data = self.compose_data_identifier(query)
 
-        listener = client.get_matching_listener(data, ListenerTypes.MESSAGE)
+        listener = client.get_matching_listener(data, ListenerTypes.CALLBACK_QUERY)
 
         listener_does_match = False
 
