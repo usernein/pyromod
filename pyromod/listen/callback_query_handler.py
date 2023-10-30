@@ -1,6 +1,7 @@
 from inspect import iscoroutinefunction
 from typing import Callable, Tuple
 
+
 import pyrogram
 from pyrogram.filters import Filter
 from pyrogram.types import CallbackQuery
@@ -57,9 +58,15 @@ class CallbackQueryHandler(
 
         if listener:
             filters = listener.filters
-            listener_does_match = (
-                await filters(client, query) if callable(filters) else True
-            )
+            if callable(filters):
+                if iscoroutinefunction(filters.__call__):
+                    listener_does_match = await filters(client, query)
+                else:
+                    listener_does_match = await client.loop.run_in_executor(
+                        None, filters, client, query
+                    )
+            else:
+                listener_does_match = True
 
         return listener_does_match, listener
 
@@ -69,9 +76,15 @@ class CallbackQueryHandler(
             client, query
         )
 
-        handler_does_match = (
-            await self.filters(client, query) if callable(self.filters) else True
-        )
+        if callable(self.filters):
+            if iscoroutinefunction(self.filters.__call__):
+                handler_does_match = await self.filters(client, query)
+            else:
+                handler_does_match = await client.loop.run_in_executor(
+                    None, self.filters, client, query
+                )
+        else:
+            handler_does_match = True
 
         data = self.compose_data_identifier(query)
 

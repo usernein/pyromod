@@ -1,4 +1,6 @@
 import asyncio
+
+from inspect import iscoroutinefunction
 from typing import Optional, Callable, Dict, List
 
 import pyrogram
@@ -65,7 +67,12 @@ class Client(pyrogram.client.Client):
             return await asyncio.wait_for(future, timeout)
         except asyncio.exceptions.TimeoutError:
             if callable(config.timeout_handler):
-                config.timeout_handler(pattern, listener, timeout)
+                if iscoroutinefunction(config.timeout_handler.__call__):
+                    await config.timeout_handler(pattern, listener, timeout)
+                else:
+                    await self.loop.run_in_executor(
+                        None, config.timeout_handler, pattern, listener, timeout
+                    )
             elif config.throw_exceptions:
                 raise ListenerTimeout(timeout)
 
@@ -185,6 +192,11 @@ class Client(pyrogram.client.Client):
                 return
 
             if callable(config.stopped_handler):
-                config.stopped_handler(pattern, listener)
+                if iscoroutinefunction(config.stopped_handler.__call__):
+                    await config.stopped_handler(pattern, listener)
+                else:
+                    await self.loop.run_in_executor(
+                        None, config.stopped_handler, pattern, listener
+                    )
             elif config.throw_exceptions:
                 listener.future.set_exception(ListenerStopped())
