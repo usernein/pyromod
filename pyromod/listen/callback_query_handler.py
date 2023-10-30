@@ -1,5 +1,7 @@
 from inspect import iscoroutinefunction
 from typing import Callable, Tuple
+from inspect import iscoroutinefunction
+
 
 
 import pyrogram
