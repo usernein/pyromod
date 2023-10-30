@@ -104,6 +104,35 @@ class Client(pyrogram.client.Client):
         return response
 
     @should_patch()
+    def register_next_step_handler(
+        self,
+        callback: Callable,
+        filters: Optional[Filter] = None,
+        listener_type: ListenerTypes = ListenerTypes.MESSAGE,
+        unallowed_click_alert: bool = True,
+        chat_id: int = None,
+        user_id: int = None,
+        message_id: int = None,
+        inline_message_id: str = None,
+    ):
+        pattern = Identifier(
+            from_user_id=user_id,
+            chat_id=chat_id,
+            message_id=message_id,
+            inline_message_id=inline_message_id,
+        )
+
+        listener = Listener(
+            callback=callback,
+            filters=filters,
+            unallowed_click_alert=unallowed_click_alert,
+            identifier=pattern,
+            listener_type=listener_type,
+        )
+
+        self.listeners[listener_type].append(listener)
+
+    @should_patch()
     def get_matching_listener(
         self, pattern: Identifier, listener_type: ListenerTypes
     ) -> Optional[Listener]:
