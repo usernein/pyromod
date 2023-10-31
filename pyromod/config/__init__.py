@@ -1,12 +1,11 @@
 from types import SimpleNamespace
-from typing import Callable
 
 config = SimpleNamespace(
-    timeout_handler: Callable = None,
-    stopped_handler: Callable = None,
-    throw_exceptions: bool = True,
-    unallowed_click_alert: bool = True,
-    unallowed_click_alert_text: str = ("[pyromod] You're not expected to click this button."),
+    timeout_handler=None,
+    stopped_handler=None,
+    throw_exceptions=True,
+    unallowed_click_alert=True,
+    unallowed_click_alert_text=("[pyromod] You're not expected to click this button."),
 )
 
 __all__ = ["config"]
