@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 import pyrogram
 
@@ -14,7 +14,7 @@ class Message(pyrogram.types.messages_and_media.message.Message):
     @should_patch()
     async def wait_for_click(
         self,
-        from_user_id: Optional[int] = None,
+        from_user_id: Optional[Union[int, List[int]]] = None,
         timeout: Optional[int] = None,
         filters=None,
         alert: Union[str, bool] = True,

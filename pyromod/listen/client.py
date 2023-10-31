@@ -1,7 +1,9 @@
 import asyncio
 
 from inspect import iscoroutinefunction
-from typing import Optional, Callable, Dict, List
+from typing import Optional, Callable, Dict, List, Union
+
+from inspect import iscoroutinefunction
 
 import pyrogram
 from pyrogram.filters import Filter
@@ -29,10 +31,10 @@ class Client(pyrogram.client.Client):
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: Optional[int] = None,
         unallowed_click_alert: bool = True,
-        chat_id: int = None,
-        user_id: int = None,
-        message_id: int = None,
-        inline_message_id: str = None,
+        chat_id: Union[int, List[int]] = None,
+        user_id: Union[int, List[int]] = None,
+        message_id: Union[int, List[int]] = None,
+        inline_message_id: Union[str, List[str]] = None,
     ):
         pattern = Identifier(
             from_user_id=user_id,
@@ -79,21 +81,22 @@ class Client(pyrogram.client.Client):
     @should_patch()
     async def ask(
         self,
-        chat_id: int,
+        chat_id: Union[int, List[int]],
         text: str,
         filters: Optional[Filter] = None,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: Optional[int] = None,
         unallowed_click_alert: bool = True,
-        user_id: int = None,
-        message_id: int = None,
-        inline_message_id: str = None,
+        user_id: Union[int, List[int]] = None,
+        message_id: Union[int, List[int]] = None,
+        inline_message_id: Union[str, List[str]] = None,
         *args,
         **kwargs,
     ):
         sent_message = None
         if text.strip() != "":
-            sent_message = await self.send_message(chat_id, text, *args, **kwargs)
+            chat_to_ask = chat_id[0] if isinstance(chat_id, list) else chat_id
+            sent_message = await self.send_message(chat_to_ask, text, *args, **kwargs)
 
         response = await self.listen(
             filters=filters,
@@ -172,10 +175,10 @@ class Client(pyrogram.client.Client):
     def stop_listening(
         self,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
-        chat_id: int = None,
-        user_id: int = None,
-        message_id: int = None,
-        inline_message_id: str = None,
+        chat_id: Union[int, List[int]] = None,
+        user_id: Union[int, List[int]] = None,
+        message_id: Union[int, List[int]] = None,
+        inline_message_id: Union[str, List[str]] = None,
     ):
         pattern = Identifier(
             from_user_id=user_id,
