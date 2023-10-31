@@ -1,4 +1,5 @@
 import asyncio
+import functools
 from inspect import iscoroutinefunction
 from typing import Optional, Callable, Dict, List, Union
 
@@ -42,15 +43,6 @@ class Client(pyrogram.client.Client):
 
         loop = asyncio.get_event_loop()
         future = loop.create_future()
-        future.add_done_callback(
-            lambda f: self.stop_listening(
-                listener_type,
-                user_id=user_id,
-                chat_id=chat_id,
-                message_id=message_id,
-                inline_message_id=inline_message_id,
-            )
-        )
 
         listener = Listener(
             future=future,
@@ -59,6 +51,8 @@ class Client(pyrogram.client.Client):
             identifier=pattern,
             listener_type=listener_type,
         )
+
+        future.add_done_callback(functools.partial(self.remove_listener, listener))
 
         self.listeners[listener_type].append(listener)
 
@@ -169,7 +163,7 @@ class Client(pyrogram.client.Client):
         return listeners
 
     @should_patch()
-    def stop_listening(
+    async def stop_listening(
         self,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
@@ -186,17 +180,21 @@ class Client(pyrogram.client.Client):
         listeners = self.get_many_matching_listeners(pattern, listener_type)
 
         for listener in listeners:
-            self.remove_listener(listener)
+            await self.stop_listener(listener)
 
-            if listener.future.done():
-                return
+    @should_patch()
+    async def stop_listener(self, listener: Listener):
+        self.remove_listener(listener)
 
-            if callable(config.stopped_handler):
-                if iscoroutinefunction(config.stopped_handler.__call__):
-                    await config.stopped_handler(pattern, listener)
-                else:
-                    await self.loop.run_in_executor(
-                        None, config.stopped_handler, pattern, listener
-                    )
-            elif config.throw_exceptions:
-                listener.future.set_exception(ListenerStopped())
+        if listener.future.done():
+            return
+
+        if callable(config.stopped_handler):
+            if iscoroutinefunction(config.stopped_handler.__call__):
+                await config.stopped_handler(None, listener)
+            else:
+                await self.loop.run_in_executor(
+                    None, config.stopped_handler, None, listener
+                )
+        elif config.throw_exceptions:
+            listener.future.set_exception(ListenerStopped())

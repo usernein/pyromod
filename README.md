@@ -148,7 +148,7 @@ or contribute in any way that aligns with our goals.
 
 This project may include snippets of Pyrogram code
 
-- Pyrogram - Telegram MTProto API Client Library for Python. Copyright (C) 2017-2022
+- Pyrogram - Telegram MTProto API Client Library for Python. Copyright (C) 2017-2023
   Dan <<https://github.com/delivrance>>
 
 Licensed under the terms of the [GNU Lesser General Public License v3 or later (LGPLv3+)](COPYING.lesser)
