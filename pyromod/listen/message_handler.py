@@ -24,11 +24,14 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
     async def check_if_has_matching_listener(self, client: Client, message: Message):
         from_user = message.from_user
         from_user_id = from_user.id if from_user else None
+        from_user_username = from_user.username if from_user else None
 
         message_id = getattr(message, "id", getattr(message, "message_id", None))
 
         data = Identifier(
-            message_id=message_id, chat_id=message.chat.id, from_user_id=from_user_id
+            message_id=message_id,
+            chat_id=[message.chat.id, message.chat.username],
+            from_user_id=[from_user_id, from_user_username],
         )
 
         listener = client.get_matching_listener(data, ListenerTypes.MESSAGE)
