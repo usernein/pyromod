@@ -18,12 +18,14 @@ class Identifier:
             update_value = getattr(update, field)
 
             if pattern_value is not None:
-                if isinstance(pattern_value, list):
-                    if isinstance(update_value, list):
-                        # check if at least one item of update_value is in pattern_value
+                if isinstance(update_value, list):
+                    if isinstance(pattern_value, list):
                         if not set(update_value).intersection(set(pattern_value)):
                             return False
-                    elif update_value not in pattern_value:
+                    elif pattern_value not in update_value:
+                        return False
+                elif isinstance(pattern_value, list):
+                    if update_value not in pattern_value:
                         return False
                 elif update_value != pattern_value:
                     return False

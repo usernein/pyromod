@@ -1,5 +1,4 @@
 import asyncio
-import functools
 from inspect import iscoroutinefunction
 from typing import Optional, Callable, Dict, List, Union
 
@@ -52,7 +51,7 @@ class Client(pyrogram.client.Client):
             listener_type=listener_type,
         )
 
-        future.add_done_callback(functools.partial(self.remove_listener, listener))
+        future.add_done_callback(lambda _future: self.remove_listener(listener))
 
         self.listeners[listener_type].append(listener)
 
@@ -150,7 +149,10 @@ class Client(pyrogram.client.Client):
 
     @should_patch()
     def remove_listener(self, listener: Listener):
-        self.listeners[listener.listener_type].remove(listener)
+        try:
+            self.listeners[listener.listener_type].remove(listener)
+        except ValueError:
+            pass
 
     @should_patch()
     def get_many_matching_listeners(
