@@ -20,6 +20,8 @@ of advanced features, simplifies conversation handling, and offers a high degree
 
 You can find the full documentation at [pyromod.pauxis.dev](https://pyromod.pauxis.dev).
 
+Also feel free to ask any pyromod-related questions on our [Telegram group](https://t.me/pyromodchat).
+
 ## Key Features
 
 - **Effortless Bot Development:** pyromod streamlines the process of building conversational Telegram bots, saving you
