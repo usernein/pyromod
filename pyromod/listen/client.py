@@ -1,5 +1,6 @@
 import asyncio
-from typing import Optional, Callable, Dict, List
+from inspect import iscoroutinefunction
+from typing import Optional, Callable, Dict, List, Union
 
 import pyrogram
 from pyrogram.filters import Filter
@@ -8,6 +9,11 @@ from ..config import config
 from ..exceptions import ListenerTimeout, ListenerStopped
 from ..types import ListenerTypes, Identifier, Listener
 from ..utils import should_patch, patch_into
+
+if not config.disable_startup_logs:
+    print(
+        "Pyromod is working! If you like pyromod, please star it at https://github.com/usernein/pyromod"
+    )
 
 
 @patch_into(pyrogram.client.Client)
@@ -27,10 +33,10 @@ class Client(pyrogram.client.Client):
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: Optional[int] = None,
         unallowed_click_alert: bool = True,
-        chat_id: int = None,
-        user_id: int = None,
-        message_id: int = None,
-        inline_message_id: str = None,
+        chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        message_id: Union[int, List[int]] = None,
+        inline_message_id: Union[str, List[str]] = None,
     ):
         pattern = Identifier(
             from_user_id=user_id,
@@ -41,15 +47,6 @@ class Client(pyrogram.client.Client):
 
         loop = asyncio.get_event_loop()
         future = loop.create_future()
-        future.add_done_callback(
-            lambda f: self.stop_listening(
-                listener_type,
-                user_id=user_id,
-                chat_id=chat_id,
-                message_id=message_id,
-                inline_message_id=inline_message_id,
-            )
-        )
 
         listener = Listener(
             future=future,
@@ -59,34 +56,42 @@ class Client(pyrogram.client.Client):
             listener_type=listener_type,
         )
 
+        future.add_done_callback(lambda _future: self.remove_listener(listener))
+
         self.listeners[listener_type].append(listener)
 
         try:
             return await asyncio.wait_for(future, timeout)
         except asyncio.exceptions.TimeoutError:
             if callable(config.timeout_handler):
-                config.timeout_handler(pattern, listener, timeout)
+                if iscoroutinefunction(config.timeout_handler.__call__):
+                    await config.timeout_handler(pattern, listener, timeout)
+                else:
+                    await self.loop.run_in_executor(
+                        None, config.timeout_handler, pattern, listener, timeout
+                    )
             elif config.throw_exceptions:
                 raise ListenerTimeout(timeout)
 
     @should_patch()
     async def ask(
         self,
-        chat_id: int,
+        chat_id: Union[Union[int, str], List[Union[int, str]]],
         text: str,
         filters: Optional[Filter] = None,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: Optional[int] = None,
         unallowed_click_alert: bool = True,
-        user_id: int = None,
-        message_id: int = None,
-        inline_message_id: str = None,
+        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        message_id: Union[int, List[int]] = None,
+        inline_message_id: Union[str, List[str]] = None,
         *args,
         **kwargs,
     ):
         sent_message = None
         if text.strip() != "":
-            sent_message = await self.send_message(chat_id, text, *args, **kwargs)
+            chat_to_ask = chat_id[0] if isinstance(chat_id, list) else chat_id
+            sent_message = await self.send_message(chat_to_ask, text, *args, **kwargs)
 
         response = await self.listen(
             filters=filters,
@@ -102,6 +107,35 @@ class Client(pyrogram.client.Client):
             response.sent_message = sent_message
 
         return response
+
+    @should_patch()
+    def register_next_step_handler(
+        self,
+        callback: Callable,
+        filters: Optional[Filter] = None,
+        listener_type: ListenerTypes = ListenerTypes.MESSAGE,
+        unallowed_click_alert: bool = True,
+        chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        message_id: Union[int, List[int]] = None,
+        inline_message_id: Union[str, List[str]] = None,
+    ):
+        pattern = Identifier(
+            from_user_id=user_id,
+            chat_id=chat_id,
+            message_id=message_id,
+            inline_message_id=inline_message_id,
+        )
+
+        listener = Listener(
+            callback=callback,
+            filters=filters,
+            unallowed_click_alert=unallowed_click_alert,
+            identifier=pattern,
+            listener_type=listener_type,
+        )
+
+        self.listeners[listener_type].append(listener)
 
     @should_patch()
     def get_matching_listener(
@@ -120,7 +154,10 @@ class Client(pyrogram.client.Client):
 
     @should_patch()
     def remove_listener(self, listener: Listener):
-        self.listeners[listener.listener_type].remove(listener)
+        try:
+            self.listeners[listener.listener_type].remove(listener)
+        except ValueError:
+            pass
 
     @should_patch()
     def get_many_matching_listeners(
@@ -133,13 +170,13 @@ class Client(pyrogram.client.Client):
         return listeners
 
     @should_patch()
-    def stop_listening(
+    async def stop_listening(
         self,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
-        chat_id: int = None,
-        user_id: int = None,
-        message_id: int = None,
-        inline_message_id: str = None,
+        chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        message_id: Union[int, List[int]] = None,
+        inline_message_id: Union[str, List[str]] = None,
     ):
         pattern = Identifier(
             from_user_id=user_id,
@@ -150,12 +187,21 @@ class Client(pyrogram.client.Client):
         listeners = self.get_many_matching_listeners(pattern, listener_type)
 
         for listener in listeners:
-            self.remove_listener(listener)
+            await self.stop_listener(listener)
 
-            if listener.future.done():
-                return
+    @should_patch()
+    async def stop_listener(self, listener: Listener):
+        self.remove_listener(listener)
 
-            if callable(config.stopped_handler):
-                config.stopped_handler(pattern, listener)
-            elif config.throw_exceptions:
-                listener.future.set_exception(ListenerStopped())
+        if listener.future.done():
+            return
+
+        if callable(config.stopped_handler):
+            if iscoroutinefunction(config.stopped_handler.__call__):
+                await config.stopped_handler(None, listener)
+            else:
+                await self.loop.run_in_executor(
+                    None, config.stopped_handler, None, listener
+                )
+        elif config.throw_exceptions:
+            listener.future.set_exception(ListenerStopped())

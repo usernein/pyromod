@@ -20,6 +20,8 @@ of advanced features, simplifies conversation handling, and offers a high degree
 
 You can find the full documentation at [pyromod.pauxis.dev](https://pyromod.pauxis.dev).
 
+Also feel free to ask any pyromod-related questions on our [Telegram group](https://t.me/pyromodchat).
+
 ## Key Features
 
 - **Effortless Bot Development:** pyromod streamlines the process of building conversational Telegram bots, saving you
@@ -148,7 +150,7 @@ or contribute in any way that aligns with our goals.
 
 This project may include snippets of Pyrogram code
 
-- Pyrogram - Telegram MTProto API Client Library for Python. Copyright (C) 2017-2022
+- Pyrogram - Telegram MTProto API Client Library for Python. Copyright (C) 2017-2023
   Dan <<https://github.com/delivrance>>
 
 Licensed under the terms of the [GNU Lesser General Public License v3 or later (LGPLv3+)](COPYING.lesser)
