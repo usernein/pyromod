@@ -10,6 +10,11 @@ from ..exceptions import ListenerTimeout, ListenerStopped
 from ..types import ListenerTypes, Identifier, Listener
 from ..utils import should_patch, patch_into
 
+if not config.disable_startup_logs:
+    print(
+        "Pyromod is working! If you like pyromod, please star it at https://github.com/usernein/pyromod"
+    )
+
 
 @patch_into(pyrogram.client.Client)
 class Client(pyrogram.client.Client):
