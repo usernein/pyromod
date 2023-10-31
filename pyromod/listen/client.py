@@ -29,8 +29,8 @@ class Client(pyrogram.client.Client):
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: Optional[int] = None,
         unallowed_click_alert: bool = True,
-        chat_id: Union[int, List[int]] = None,
-        user_id: Union[int, List[int]] = None,
+        chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
         message_id: Union[int, List[int]] = None,
         inline_message_id: Union[str, List[str]] = None,
     ):
@@ -72,13 +72,13 @@ class Client(pyrogram.client.Client):
     @should_patch()
     async def ask(
         self,
-        chat_id: Union[int, List[int]],
+        chat_id: Union[Union[int, str], List[Union[int, str]]],
         text: str,
         filters: Optional[Filter] = None,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: Optional[int] = None,
         unallowed_click_alert: bool = True,
-        user_id: Union[int, List[int]] = None,
+        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
         message_id: Union[int, List[int]] = None,
         inline_message_id: Union[str, List[str]] = None,
         *args,
@@ -166,8 +166,8 @@ class Client(pyrogram.client.Client):
     async def stop_listening(
         self,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
-        chat_id: Union[int, List[int]] = None,
-        user_id: Union[int, List[int]] = None,
+        chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
         message_id: Union[int, List[int]] = None,
         inline_message_id: Union[str, List[str]] = None,
     ):

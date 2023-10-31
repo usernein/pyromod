@@ -26,6 +26,7 @@ class CallbackQueryHandler(
     def compose_data_identifier(self, query: CallbackQuery):
         from_user = query.from_user
         from_user_id = from_user.id if from_user else None
+        from_user_username = from_user.username if from_user else None
 
         chat_id = None
         message_id = None
@@ -36,12 +37,12 @@ class CallbackQueryHandler(
             )
 
             if query.message.chat:
-                chat_id = query.message.chat.id
+                chat_id = [query.message.chat.id, query.message.chat.username]
 
         return Identifier(
             message_id=message_id,
             chat_id=chat_id,
-            from_user_id=from_user_id,
+            from_user_id=[from_user_id, from_user_username],
             inline_message_id=query.inline_message_id,
         )
 
