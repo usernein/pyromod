@@ -115,10 +115,10 @@ class Client(pyrogram.client.Client):
         filters: Optional[Filter] = None,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         unallowed_click_alert: bool = True,
-        chat_id: int = None,
-        user_id: int = None,
-        message_id: int = None,
-        inline_message_id: str = None,
+        chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        message_id: Union[int, List[int]] = None,
+        inline_message_id: Union[str, List[str]] = None,
     ):
         pattern = Identifier(
             from_user_id=user_id,
