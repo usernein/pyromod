@@ -143,7 +143,7 @@ class Client(pyrogram.client.Client):
     ) -> Optional[Listener]:
         matching = []
         for listener in self.listeners[listener_type]:
-            if listener.identifier.matches(pattern):
+            if pattern.matches(listener.identifier):
                 matching.append(listener)
 
         # in case of multiple matching listeners, the most specific should be returned
@@ -165,7 +165,7 @@ class Client(pyrogram.client.Client):
     ) -> List[Listener]:
         listeners = []
         for listener in self.listeners[listener_type]:
-            if listener.identifier.matches(pattern):
+            if pattern.matches(listener.identifier):
                 listeners.append(listener)
         return listeners
 
