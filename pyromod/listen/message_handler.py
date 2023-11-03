@@ -12,6 +12,10 @@ from ..utils import should_patch, patch_into
 
 @patch_into(pyrogram.handlers.message_handler.MessageHandler)
 class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
+    """
+    This class is patched into pyrogram.handlers.message_handler.MessageHandler.
+    """
+
     filters: Filter
     old__init__: Callable
 
@@ -22,6 +26,14 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
 
     @should_patch()
     async def check_if_has_matching_listener(self, client: Client, message: Message):
+        """
+        Checks if the message has a matching listener.
+
+        :param client: The Client object to check with.
+        :param message: The Message object to check with.
+        :return: A tuple of whether the message has a matching listener and its filters does match with the Message
+        and the matching listener;
+        """
         from_user = message.from_user
         from_user_id = from_user.id if from_user else None
         from_user_username = from_user.username if from_user else None
@@ -54,6 +66,13 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
 
     @should_patch()
     async def check(self, client: Client, message: Message):
+        """
+        Checks if the message has a matching listener or handler and its filters does match with the Message.
+
+        :param client: Client object to check with.
+        :param message: Message object to check with.
+        :return: Whether the message has a matching listener or handler and its filters does match with the Message.
+        """
         listener_does_match = (
             await self.check_if_has_matching_listener(client, message)
         )[0]
@@ -74,6 +93,14 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
 
     @should_patch()
     async def resolve_future_or_callback(self, client: Client, message: Message, *args):
+        """
+        Resolves the future or calls the callback of the listener if the message has a matching listener.
+
+        :param client: Client object to resolve or call with.
+        :param message: Message object to resolve or call with.
+        :param args: Arguments to call the callback with.
+        :return: None
+        """
         listener_does_match, listener = await self.check_if_has_matching_listener(
             client, message
         )

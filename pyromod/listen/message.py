@@ -19,6 +19,15 @@ class Message(pyrogram.types.messages_and_media.message.Message):
         filters=None,
         alert: Union[str, bool] = True,
     ):
+        """
+        Waits for a callback query to be clicked on the message.
+
+        :param from_user_id: The user ID(s) to wait for. If None, waits for any user.
+        :param timeout: The timeout in seconds. If None, waits forever.
+        :param filters: The filters to pass to Client.listen().
+        :param alert: The alert to show when the button is clicked by users that are not allowed in from_user_id.
+        :return: The callback query that was clicked.
+        """
         message_id = getattr(self, "id", getattr(self, "message_id", None))
 
         return await self._client.listen(

@@ -15,6 +15,12 @@ from ..utils import patch_into, should_patch
 class CallbackQueryHandler(
     pyrogram.handlers.callback_query_handler.CallbackQueryHandler
 ):
+    """
+    This class is patched into pyrogram.handlers.callback_query_handler.CallbackQueryHandler.
+
+    It is used to add the ability to listen for callback queries.
+    """
+
     old__init__: Callable
 
     @should_patch()
@@ -24,6 +30,12 @@ class CallbackQueryHandler(
 
     @should_patch()
     def compose_data_identifier(self, query: CallbackQuery):
+        """
+        Composes an Identifier object from a CallbackQuery object.
+
+        :param query: The CallbackQuery object to compose of.
+        :return: An Identifier object.
+        """
         from_user = query.from_user
         from_user_id = from_user.id if from_user else None
         from_user_username = from_user.username if from_user else None
@@ -50,6 +62,15 @@ class CallbackQueryHandler(
     async def check_if_has_matching_listener(
         self, client: Client, query: CallbackQuery
     ) -> Tuple[bool, Listener]:
+        """
+        Checks if the CallbackQuery object has a matching listener.
+
+        :param client: The Client object to check with.
+        :param query: The CallbackQuery object to check with.
+        :return: A tuple of a boolean and a Listener object. The boolean indicates whether
+        the found listener has filters and its filters matches with the CallbackQuery object.
+        The Listener object is the matching listener.
+        """
         data = self.compose_data_identifier(query)
 
         listener = client.get_listener_matching_with_data(
@@ -74,6 +95,14 @@ class CallbackQueryHandler(
 
     @should_patch()
     async def check(self, client: Client, query: CallbackQuery):
+        """
+        Checks if the CallbackQuery object has a matching listener or handler.
+
+        :param client: The Client object to check with.
+        :param query: The CallbackQuery object to check with.
+        :return: A boolean indicating whether the CallbackQuery object has a matching listener or the handler
+        filter matches.
+        """
         listener_does_match, listener = await self.check_if_has_matching_listener(
             client, query
         )
@@ -122,6 +151,14 @@ class CallbackQueryHandler(
     async def resolve_future_or_callback(
         self, client: Client, query: CallbackQuery, *args
     ):
+        """
+        Resolves the future or calls the callback of the listener. Will call the original handler if no listener.
+
+        :param client: The Client object to resolve or call with.
+        :param query: The CallbackQuery object to resolve or call with.
+        :param args: The arguments to call the callback with.
+        :return: None
+        """
         listener_does_match, listener = await self.check_if_has_matching_listener(
             client, query
         )
