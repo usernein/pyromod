@@ -1,3 +1,11 @@
+<p align="center">
+    <a href="https://github.com/usernein/pyromod">
+        <img src="https://telegra.ph/file/5f2de57d4d63521c8fbeb.jpg" alt="pyromod" width="188">
+    </a>
+    <br>
+    <b>A monkeypatcher add-on for Pyrogram</b>
+</p>
+
 # pyromod
 
 [![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat&logo=telegram&logoColor=white)](https://t.me/pyromodchat)
