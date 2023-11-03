@@ -34,7 +34,7 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
             from_user_id=[from_user_id, from_user_username],
         )
 
-        listener = client.get_matching_listener(data, ListenerTypes.MESSAGE)
+        listener = client.get_listener_matching_with_data(data, ListenerTypes.MESSAGE)
 
         listener_does_match = False
 

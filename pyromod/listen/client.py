@@ -109,6 +109,106 @@ class Client(pyrogram.client.Client):
         return response
 
     @should_patch()
+    def remove_listener(self, listener: Listener):
+        try:
+            self.listeners[listener.listener_type].remove(listener)
+        except ValueError:
+            pass
+
+    @should_patch()
+    def get_listener_matching_with_data(
+        self, data: Identifier, listener_type: ListenerTypes
+    ) -> Optional[Listener]:
+        matching = []
+        for listener in self.listeners[listener_type]:
+            if listener.identifier.matches(data):
+                matching.append(listener)
+
+        # in case of multiple matching listeners, the most specific should be returned
+        def count_populated_attributes(listener_item: Listener):
+            return listener_item.identifier.count_populated()
+
+        return max(matching, key=count_populated_attributes, default=None)
+
+    def get_listener_matching_with_identifier_pattern(
+        self, pattern: Identifier, listener_type: ListenerTypes
+    ) -> Optional[Listener]:
+        matching = []
+        for listener in self.listeners[listener_type]:
+            if pattern.matches(listener.identifier):
+                matching.append(listener)
+
+        # in case of multiple matching listeners, the most specific should be returned
+
+        def count_populated_attributes(listener_item: Listener):
+            return listener_item.identifier.count_populated()
+
+        return max(matching, key=count_populated_attributes, default=None)
+
+    @should_patch()
+    def get_many_listeners_matching_with_data(
+        self,
+        data: Identifier,
+        listener_type: ListenerTypes,
+    ) -> List[Listener]:
+        listeners = []
+        for listener in self.listeners[listener_type]:
+            if listener.identifier.matches(data):
+                listeners.append(listener)
+        return listeners
+
+    @should_patch()
+    def get_many_listeners_matching_with_identifier_pattern(
+        self,
+        pattern: Identifier,
+        listener_type: ListenerTypes,
+    ) -> List[Listener]:
+        listeners = []
+        for listener in self.listeners[listener_type]:
+            if pattern.matches(listener.identifier):
+                listeners.append(listener)
+        return listeners
+
+    @should_patch()
+    async def stop_listening(
+        self,
+        listener_type: ListenerTypes = ListenerTypes.MESSAGE,
+        chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
+        message_id: Union[int, List[int]] = None,
+        inline_message_id: Union[str, List[str]] = None,
+    ):
+        pattern = Identifier(
+            from_user_id=user_id,
+            chat_id=chat_id,
+            message_id=message_id,
+            inline_message_id=inline_message_id,
+        )
+        listeners = self.get_many_listeners_matching_with_identifier_pattern(
+            pattern, listener_type, match_against_pattern=True
+        )
+
+        for listener in listeners:
+            await self.stop_listener(listener)
+
+    @should_patch()
+    async def stop_listener(self, listener: Listener):
+        self.remove_listener(listener)
+
+        if listener.future.done():
+            return
+
+        if callable(config.stopped_handler):
+            if iscoroutinefunction(config.stopped_handler.__call__):
+                await config.stopped_handler(None, listener)
+            else:
+                await self.loop.run_in_executor(
+                    None, config.stopped_handler, None, listener
+                )
+        elif config.throw_exceptions:
+            listener.future.set_exception(ListenerStopped())
+
+    @should_patch()
     def register_next_step_handler(
         self,
         callback: Callable,
@@ -136,72 +236,3 @@ class Client(pyrogram.client.Client):
         )
 
         self.listeners[listener_type].append(listener)
-
-    @should_patch()
-    def get_matching_listener(
-        self, pattern: Identifier, listener_type: ListenerTypes
-    ) -> Optional[Listener]:
-        matching = []
-        for listener in self.listeners[listener_type]:
-            if pattern.matches(listener.identifier):
-                matching.append(listener)
-
-        # in case of multiple matching listeners, the most specific should be returned
-        def count_populated_attributes(listener_item: Listener):
-            return listener_item.identifier.count_populated()
-
-        return max(matching, key=count_populated_attributes, default=None)
-
-    @should_patch()
-    def remove_listener(self, listener: Listener):
-        try:
-            self.listeners[listener.listener_type].remove(listener)
-        except ValueError:
-            pass
-
-    @should_patch()
-    def get_many_matching_listeners(
-        self, pattern: Identifier, listener_type: ListenerTypes
-    ) -> List[Listener]:
-        listeners = []
-        for listener in self.listeners[listener_type]:
-            if pattern.matches(listener.identifier):
-                listeners.append(listener)
-        return listeners
-
-    @should_patch()
-    async def stop_listening(
-        self,
-        listener_type: ListenerTypes = ListenerTypes.MESSAGE,
-        chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
-        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
-        message_id: Union[int, List[int]] = None,
-        inline_message_id: Union[str, List[str]] = None,
-    ):
-        pattern = Identifier(
-            from_user_id=user_id,
-            chat_id=chat_id,
-            message_id=message_id,
-            inline_message_id=inline_message_id,
-        )
-        listeners = self.get_many_matching_listeners(pattern, listener_type)
-
-        for listener in listeners:
-            await self.stop_listener(listener)
-
-    @should_patch()
-    async def stop_listener(self, listener: Listener):
-        self.remove_listener(listener)
-
-        if listener.future.done():
-            return
-
-        if callable(config.stopped_handler):
-            if iscoroutinefunction(config.stopped_handler.__call__):
-                await config.stopped_handler(None, listener)
-            else:
-                await self.loop.run_in_executor(
-                    None, config.stopped_handler, None, listener
-                )
-        elif config.throw_exceptions:
-            listener.future.set_exception(ListenerStopped())

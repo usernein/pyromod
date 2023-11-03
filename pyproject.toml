@@ -1,6 +1,6 @@
 [project]
 name = "pyromod"
-version = "3.1.1"
+version = "3.1.5"
 description = "A monkeypatcher add-on for Pyrogram that does conversation handling"
 authors = [
     { name = "Pauxis", email = "pauxiscezar@gmail.com" }
