@@ -184,12 +184,7 @@ class Client(pyrogram.client.Client):
             message_id=message_id,
             inline_message_id=inline_message_id,
         )
-        listeners = self.get_many_listeners_matching_with_identifier_pattern(
-            pattern,
-            listener_type, 
-            # match_against_pattern=True
-            # Commented out the `match_against_pattern` till it's added to the get_many_listeners_matching_with_identifier_pattern() funtion.
-        )
+        listeners = self.get_many_listeners_matching_with_identifier_pattern(pattern, listener_type)
 
         for listener in listeners:
             await self.stop_listener(listener)
