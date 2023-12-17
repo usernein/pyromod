@@ -22,9 +22,9 @@ class Message(pyrogram.types.messages_and_media.message.Message):
         message_id = getattr(self, "id", getattr(self, "message_id", None))
 
         return await self._client.listen(
-            listener_type=ListenerTypes.CALLBACK_QUERY,
-            timeout=timeout,
             filters=filters,
+            timeout=timeout,
+            listener_type=ListenerTypes.CALLBACK_QUERY,
             unallowed_click_alert=alert,
             chat_id=self.chat.id,
             user_id=from_user_id,
