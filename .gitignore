@@ -56,3 +56,6 @@ Session.vim
 
 .python-version
 .venv
+
+.idea
+*.session*

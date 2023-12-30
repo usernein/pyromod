@@ -1,5 +1,7 @@
 import asyncio
+import uuid
 from inspect import iscoroutinefunction
+from types import SimpleNamespace
 from typing import Optional, Callable, Dict, List, Union
 
 import pyrogram
@@ -19,24 +21,28 @@ if not config.disable_startup_logs:
 @patch_into(pyrogram.client.Client)
 class Client(pyrogram.client.Client):
     listeners: Dict[ListenerTypes, List[Listener]]
+    messages_with_keyboard: Dict[str, SimpleNamespace]
+    bot_client: pyrogram.Client = None
+    bot_username: str = None
     old__init__: Callable
 
     @should_patch()
     def __init__(self, *args, **kwargs):
         self.listeners = {listener_type: [] for listener_type in ListenerTypes}
+        self.messages_with_keyboard = {}
         self.old__init__(*args, **kwargs)
 
     @should_patch()
     async def listen(
-        self,
-        filters: Optional[Filter] = None,
-        listener_type: ListenerTypes = ListenerTypes.MESSAGE,
-        timeout: Optional[int] = None,
-        unallowed_click_alert: bool = True,
-        chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
-        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
-        message_id: Union[int, List[int]] = None,
-        inline_message_id: Union[str, List[str]] = None,
+            self,
+            filters: Optional[Filter] = None,
+            listener_type: ListenerTypes = ListenerTypes.MESSAGE,
+            timeout: Optional[int] = None,
+            unallowed_click_alert: bool = True,
+            chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
+            user_id: Union[Union[int, str], List[Union[int, str]]] = None,
+            message_id: Union[int, List[int]] = None,
+            inline_message_id: Union[str, List[str]] = None,
     ):
         pattern = Identifier(
             from_user_id=user_id,
@@ -75,18 +81,18 @@ class Client(pyrogram.client.Client):
 
     @should_patch()
     async def ask(
-        self,
-        chat_id: Union[Union[int, str], List[Union[int, str]]],
-        text: str,
-        filters: Optional[Filter] = None,
-        listener_type: ListenerTypes = ListenerTypes.MESSAGE,
-        timeout: Optional[int] = None,
-        unallowed_click_alert: bool = True,
-        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
-        message_id: Union[int, List[int]] = None,
-        inline_message_id: Union[str, List[str]] = None,
-        *args,
-        **kwargs,
+            self,
+            chat_id: Union[Union[int, str], List[Union[int, str]]],
+            text: str,
+            filters: Optional[Filter] = None,
+            listener_type: ListenerTypes = ListenerTypes.MESSAGE,
+            timeout: Optional[int] = None,
+            unallowed_click_alert: bool = True,
+            user_id: Union[Union[int, str], List[Union[int, str]]] = None,
+            message_id: Union[int, List[int]] = None,
+            inline_message_id: Union[str, List[str]] = None,
+            *args,
+            **kwargs,
     ):
         sent_message = None
         if text.strip() != "":
@@ -117,7 +123,7 @@ class Client(pyrogram.client.Client):
 
     @should_patch()
     def get_listener_matching_with_data(
-        self, data: Identifier, listener_type: ListenerTypes
+            self, data: Identifier, listener_type: ListenerTypes
     ) -> Optional[Listener]:
         matching = []
         for listener in self.listeners[listener_type]:
@@ -131,7 +137,7 @@ class Client(pyrogram.client.Client):
         return max(matching, key=count_populated_attributes, default=None)
 
     def get_listener_matching_with_identifier_pattern(
-        self, pattern: Identifier, listener_type: ListenerTypes
+            self, pattern: Identifier, listener_type: ListenerTypes
     ) -> Optional[Listener]:
         matching = []
         for listener in self.listeners[listener_type]:
@@ -147,9 +153,9 @@ class Client(pyrogram.client.Client):
 
     @should_patch()
     def get_many_listeners_matching_with_data(
-        self,
-        data: Identifier,
-        listener_type: ListenerTypes,
+            self,
+            data: Identifier,
+            listener_type: ListenerTypes,
     ) -> List[Listener]:
         listeners = []
         for listener in self.listeners[listener_type]:
@@ -159,9 +165,9 @@ class Client(pyrogram.client.Client):
 
     @should_patch()
     def get_many_listeners_matching_with_identifier_pattern(
-        self,
-        pattern: Identifier,
-        listener_type: ListenerTypes,
+            self,
+            pattern: Identifier,
+            listener_type: ListenerTypes,
     ) -> List[Listener]:
         listeners = []
         for listener in self.listeners[listener_type]:
@@ -171,12 +177,12 @@ class Client(pyrogram.client.Client):
 
     @should_patch()
     async def stop_listening(
-        self,
-        listener_type: ListenerTypes = ListenerTypes.MESSAGE,
-        chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
-        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
-        message_id: Union[int, List[int]] = None,
-        inline_message_id: Union[str, List[str]] = None,
+            self,
+            listener_type: ListenerTypes = ListenerTypes.MESSAGE,
+            chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
+            user_id: Union[Union[int, str], List[Union[int, str]]] = None,
+            message_id: Union[int, List[int]] = None,
+            inline_message_id: Union[str, List[str]] = None,
     ):
         pattern = Identifier(
             from_user_id=user_id,
@@ -208,15 +214,15 @@ class Client(pyrogram.client.Client):
 
     @should_patch()
     def register_next_step_handler(
-        self,
-        callback: Callable,
-        filters: Optional[Filter] = None,
-        listener_type: ListenerTypes = ListenerTypes.MESSAGE,
-        unallowed_click_alert: bool = True,
-        chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
-        user_id: Union[Union[int, str], List[Union[int, str]]] = None,
-        message_id: Union[int, List[int]] = None,
-        inline_message_id: Union[str, List[str]] = None,
+            self,
+            callback: Callable,
+            filters: Optional[Filter] = None,
+            listener_type: ListenerTypes = ListenerTypes.MESSAGE,
+            unallowed_click_alert: bool = True,
+            chat_id: Union[Union[int, str], List[Union[int, str]]] = None,
+            user_id: Union[Union[int, str], List[Union[int, str]]] = None,
+            message_id: Union[int, List[int]] = None,
+            inline_message_id: Union[str, List[str]] = None,
     ):
         pattern = Identifier(
             from_user_id=user_id,
@@ -234,3 +240,96 @@ class Client(pyrogram.client.Client):
         )
 
         self.listeners[listener_type].append(listener)
+
+    async def inline_query_handler(self, _, query: pyrogram.types.InlineQuery):
+        if not query.query.startswith("pyromod-get-keyboard-"):
+            raise pyrogram.ContinuePropagation
+
+        id = query.query.replace("pyromod-get-keyboard-", "")
+        message: SimpleNamespace = self.messages_with_keyboard.get(id)
+
+        if not message:
+            print("Could not find message with keyboard with id", id)
+            return
+
+        results = [
+            pyrogram.types.InlineQueryResultArticle(
+                title="index",
+                input_message_content=pyrogram.types.InputTextMessageContent(
+                    message.text,
+                    parse_mode=message.parse_mode,
+                    entities=message.entities,
+                    disable_web_page_preview=message.disable_web_page_preview,
+                ),
+                reply_markup=message.reply_markup,
+            )
+        ]
+
+        await query.answer(results, cache_time=0)
+
+        del self.messages_with_keyboard[id]
+
+    @should_patch()
+    async def setup_inline_bot(self, bot: pyrogram.Client):
+        if not isinstance(bot, pyrogram.Client):
+            raise TypeError("bot must be a pyrogram.Client instance")
+
+        self.bot_client = bot
+        bot_info = await bot.get_me()
+        self.bot_username = bot_info.username
+
+        handler = pyrogram.handlers.InlineQueryHandler(self.inline_query_handler,
+                                                       filters=pyrogram.filters.regex(r"^pyromod-get-keyboard-"))
+        bot.add_handler(handler, group=0)
+
+    @should_patch()
+    async def send_message(self, *args, **kwargs):
+        if self == self.bot_client or "reply_markup" not in kwargs:
+            return await self.oldsend_message(*args, **kwargs)
+
+        reply_markup = kwargs["reply_markup"]
+        del kwargs["reply_markup"]
+
+        if not isinstance(reply_markup, pyrogram.types.InlineKeyboardMarkup):
+            return await self.oldsend_message(*args, **kwargs)
+
+        def get_from_args_or_kwargs(index: int, name: str, default=None):
+            return args[index] if len(args) > index else kwargs.get(name, default)
+
+        chat_id = get_from_args_or_kwargs(0, "chat_id", None)
+        text = get_from_args_or_kwargs(1, "text", None)
+        parse_mode = get_from_args_or_kwargs(2, "parse_mode", None)
+        entities = get_from_args_or_kwargs(3, "entities", None)
+        disable_web_page_preview = get_from_args_or_kwargs(4, "disable_web_page_preview", None)
+        disable_notification = get_from_args_or_kwargs(5, "disable_notification", None)
+        reply_to_message_id = get_from_args_or_kwargs(6, "reply_to_message_id", None)
+
+        message = SimpleNamespace(
+            text=text,
+            parse_mode=parse_mode,
+            disable_web_page_preview=disable_web_page_preview,
+            disable_notification=disable_notification,
+            reply_markup=reply_markup,
+            entities=entities,
+        )
+
+        id = str(uuid.uuid4())
+        id = id[:10]
+
+        self.messages_with_keyboard[id] = message
+
+        query = f"pyromod-get-keyboard-{id}"
+
+        inline_results = await self.get_inline_bot_results(
+            self.bot_username,
+            query
+        )
+        result = inline_results.results[0]
+
+        return await self.send_inline_bot_result(
+            chat_id,
+            inline_results.query_id,
+            result.id,
+            disable_notification=disable_notification,
+            reply_to_message_id=reply_to_message_id,
+        )
