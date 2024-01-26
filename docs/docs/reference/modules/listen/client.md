@@ -127,13 +127,13 @@ Stop listening for a message, callback query, etc.
 
 #### Parameters
 
-| Parameter          | Type                                                                                                      | Description
-|--------------------|-----------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| `listener_type`    | `pyromod.types.ListenerTypes` |
-| `chat_id`          | `int` *or* `None`                                                                                         | The chat ID to stop listening for.
-| `user_id`          | `int` *or* `None`                                                                                         | The user ID to stop listening for.
-| `message_id`       | `int` *or* `None`                                                                                         | The message ID to stop listening for.
-| `inline_message_id` | `str` *or* `None`                                                                                         | The inline message ID to stop listening for.
+| Parameter           | Type                          | Description                                  |
+|---------------------|-------------------------------|----------------------------------------------|
+| `listener_type`     | `pyromod.types.ListenerTypes` |                                              |
+| `chat_id`           | `int` *or* `None`             | The chat ID to stop listening for.           |
+| `user_id`           | `int` *or* `None`             | The user ID to stop listening for.           |
+| `message_id`        | `int` *or* `None`             | The message ID to stop listening for.        |
+| `inline_message_id` | `str` *or* `None`             | The inline message ID to stop listening for. |
 
 #### Returns
 
