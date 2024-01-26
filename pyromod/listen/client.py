@@ -17,7 +17,7 @@ if not config.disable_startup_logs:
 
 
 @patch_into(pyrogram.client.Client)
-class Client(pyrogram.client.Client):
+class Client(pyrogram.client.Client.on_callback_query()):
     listeners: Dict[ListenerTypes, List[Listener]]
     old__init__: Callable
 
