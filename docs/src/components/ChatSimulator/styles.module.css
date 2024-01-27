@@ -1,0 +1,50 @@
+
+        /*<div className={styles.chatContainer}>*/
+        /*    <div className={styles.chatHeader}>*/
+        /*        <div className={styles.chatHeaderTitle}>Chat Simulator</div>*/
+        /*    </div>*/
+        /*    <div className={styles.chatBody}>*/
+        /*        {messages.map((message, index) => {*/
+        /*            console.log(message)*/
+        /*            return (*/
+        /*                <ChatMessage key={index} message={message.value} outgoing={message.outgoing}/>*/
+        /*            )*/
+        /*        })}*/
+        /*    </div>*/
+        /*    <div className={styles.chatFooter}>*/
+        /*        <input className={styles.chatInput} ref={inputRef} type="text" placeholder="Type a message"/>*/
+        /*        <button className={styles.chatButton} onClick={sendMessage}>Send</button>*/
+        /*    </div>*/
+        /*</div>*/
+        /*                                                                                                                                                                                                                                                                          */
+.chatContainer {
+    @apply flex flex-col h-96 w-[80vw] md:w-96 bg-base-100 border-2 dark:border-base-300 rounded-box shadow-xl overflow-hidden m-2 text-base;
+}
+
+.chatHeader {
+    @apply flex flex-row justify-center items-center h-12 w-full bg-base-200 select-none;
+}
+
+.chatHeaderTitle {
+    @apply text-lg font-medium text-base-content;
+}
+
+.chatBody {
+    @apply flex flex-grow h-full max-h-full w-full bg-base-100 overflow-auto scrollbar-thin scrollbar-thumb-neutral;
+}
+
+.chatMessagesContainer {
+    @apply flex flex-col-reverse flex-grow h-full max-h-full w-full bg-base-100 px-2 overflow-auto scrollbar-thin;
+}
+
+.chatFooter {
+    @apply flex flex-row justify-center items-center h-12 w-full bg-base-200 gap-2 p-2;
+}
+
+.chatInput {
+    @apply input input-sm input-bordered w-full max-w-xs flex-grow;
+}
+
+.chatButton {
+    @apply btn btn-sm btn-primary;
+}
