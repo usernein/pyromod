@@ -67,7 +67,7 @@ const ChatMessage = ({message, outgoing}) => {
                         <div className={"bg-orange-300 h-full w-full font-bold text-black justify-center flex items-center"}>BOT</div>
                     </div>
                 </div>
-                <div className="chat-bubble text-[var(--ifm-font-color-base-inverse)] bg-[var(--ifm-color-primary-lighter)] text-white">{innerBubble}</div>
+                <div className="chat-bubble text-[var(--ifm-font-color-base-inverse)] bg-[var(--ifm-color-primary-light)] text-white">{innerBubble}</div>
             </div>
         )
     }
