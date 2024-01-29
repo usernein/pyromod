@@ -46,5 +46,5 @@
 }
 
 .chatButton {
-    @apply btn btn-sm btn-primary;
+    @apply btn btn-sm glass;
 }

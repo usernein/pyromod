@@ -21,3 +21,8 @@
   align-items: center;
   justify-content: center;
 }
+
+.advantage {
+  @apply flex flex-col gap-5 justify-center items-center w-[70vw] md:w-64 text-center bg-base-200 rounded-box p-4 font-medium;
+  @apply md:hover:shadow-xl md:hover:scale-105 duration-150;
+}

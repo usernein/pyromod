@@ -33,7 +33,7 @@ const sendMessage = (message) => {
 
 const Command = ({command}) => {
     return (
-        <div className={"text-blue-700 inline cursor-pointer"} onClick={() => sendMessage(command)}>
+        <div className={"text-blue-500 inline cursor-pointer"} onClick={() => sendMessage(command)}>
             {command}
         </div>
     )
@@ -64,10 +64,10 @@ const ChatMessage = ({message, outgoing}) => {
             <div className="chat chat-start">
                 <div className="chat-image avatar">
                     <div className="w-10 rounded-full">
-                        <div className={"bg-primary h-full w-full font-bold text-primary-content justify-center flex items-center"}>BOT</div>
+                        <div className={"bg-orange-300 h-full w-full font-bold text-black justify-center flex items-center"}>BOT</div>
                     </div>
                 </div>
-                <div className="chat-bubble chat-bubble-primary text-primary-content">{innerBubble}</div>
+                <div className="chat-bubble text-[var(--ifm-font-color-base-inverse)] bg-[var(--ifm-color-primary-lighter)] text-white">{innerBubble}</div>
             </div>
         )
     }

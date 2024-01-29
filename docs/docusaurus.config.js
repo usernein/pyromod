@@ -64,13 +64,9 @@ const config = {
         defaultMode: 'dark',
       },
       // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
+      // image: 'img/docusaurus-social-card.jpg',
       navbar: {
         title: 'pyromod',
-        logo: {
-          alt: 'My Site Logo',
-          src: 'img/logo.svg',
-        },
         items: [
           {
             type: 'docSidebar',
