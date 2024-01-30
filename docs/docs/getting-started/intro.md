@@ -4,10 +4,12 @@ sidebar_position: 1
 ---
 # pyromod
 
+<div class="badge-links">
 [![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat&logo=telegram&logoColor=white)](https://t.me/pyromodchat)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/usernein/pyromod)
 [![Downloads](https://static.pepy.tech/badge/pyromod)](https://pepy.tech/project/pyromod)
 [![Downloads](https://static.pepy.tech/badge/pyromod/month)](https://pepy.tech/project/pyromod)
+</div>
 
 pyromod is a versatile Python add-on for the Pyrogram library, designed to make developing Telegram bots faster and more
 efficient.
