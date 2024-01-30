@@ -1,5 +1,6 @@
 import {ChatSimulator} from "../ChatSimulator";
 import {emit} from "../../utils/event";
+import {useEffect} from "react";
 
 const state = {
     "waiting_for": "",
@@ -42,5 +43,10 @@ const updateProcessor = (update) => {
 }
 
 export const PyromodChatSimulator = ({}) => {
+    useEffect(() => {
+        return () => {
+            state.waiting_for = "";
+        }
+    }, []);
     return <ChatSimulator updateCallback={updateProcessor} />
 }
