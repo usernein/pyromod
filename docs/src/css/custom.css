@@ -61,3 +61,16 @@ h6 {
 .badge-links > p {
   @apply flex w-full flex-row justify-start items-center gap-3 my-2 flex-wrap;
 }
+
+ol,
+ul {
+  padding-left: theme('spacing.10');
+}
+
+ol {
+  list-style-type: decimal;
+}
+
+ul {
+  list-style-type: disc;
+}
