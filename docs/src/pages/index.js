@@ -22,34 +22,26 @@ function HomepageHeader() {
 }
 
 export default function Home() {
-    const {siteConfig} = useDocusaurusContext();
-
-    const updateProcessor = (message) => {
-        if (message === "/start") {
-            return "Hello! I'm a bot.";
-        }
-        return "I don't understand.";
-    }
     return (
         <Layout
             title={`pyromod documentation`}
             description="Powerful add-on that monkeypatches extra useful features on Pyrogram.">
             <HomepageHeader/>
-            <main className={"flex flex-col items-center justify-center"}>
+            <div className={"flex flex-col items-center justify-center"}>
                 <div className={"flex flex-col gap-5 justify-center items-center w-full"}>
                     <div className={"flex w-full flex-col md:flex-row justify-evenly items-center p-8 gap-5"}>
-                        <section className={styles.advantage}>
+                        <div className={styles.advantage}>
                             Powerful add-on that monkeypatches extra useful features.
-                        </section>
-                        <section className={styles.advantage}>
+                        </div>
+                        <div className={styles.advantage}>
                             Get user responses (or button clicks) effortlessly with a single line of code.
-                        </section>
-                        <section className={styles.advantage}>
+                        </div>
+                        <div className={styles.advantage}>
                             Create keyboard-based interfaces for your bots with ease and fun.
-                        </section>
-                        <section className={styles.advantage}>
+                        </div>
+                        <div className={styles.advantage}>
                             Effortlessly send messages with inline keyboards from your userbots.
-                        </section>
+                        </div>
                     </div>
                 </div>
                 <div className={"flex w-full flex-col-reverse md:flex-row gap-8 justify-center items-center"}>
@@ -65,7 +57,7 @@ export default function Home() {
                         Started
                     </div>
                 </a>
-            </main>
+            </div>
         </Layout>
     );
 }
